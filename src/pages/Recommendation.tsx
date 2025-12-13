@@ -68,7 +68,15 @@ export function Recommendation({
                 />
               </div>
               <div className="badge-value">
-                {Math.round(weather.minTemp)}<span className="badge-unit">{tempUnit}</span> <span className="badge-dash">-</span> {Math.round(weather.maxTemp)}<span className="badge-unit">{tempUnit}</span>
+                {Math.round(weather.minTemp) === Math.round(weather.maxTemp) ? (
+                  <>
+                    {Math.round(weather.minTemp)}<span className="badge-unit">{tempUnit}</span>
+                  </>
+                ) : (
+                  <>
+                    {Math.round(weather.minTemp)}<span className="badge-unit">{tempUnit}</span> <span className="badge-dash">-</span> {Math.round(weather.maxTemp)}<span className="badge-unit">{tempUnit}</span>
+                  </>
+                )}
               </div>
             </div>
             <div className="quick-weather-badge">

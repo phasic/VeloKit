@@ -306,9 +306,17 @@ export function Home({ onQuickRecommendation, weatherOverride }: HomeProps) {
                     className="badge-icon"
                   />
                 </div>
-                <div className="badge-value">
-                  {Math.round(quickViewData.weather.minTemp)}<span className="badge-unit">{tempUnit}</span> <span className="badge-dash">-</span> {Math.round(quickViewData.weather.maxTemp)}<span className="badge-unit">{tempUnit}</span>
-                </div>
+              <div className="badge-value">
+                {Math.round(quickViewData.weather.minTemp) === Math.round(quickViewData.weather.maxTemp) ? (
+                  <>
+                    {Math.round(quickViewData.weather.minTemp)}<span className="badge-unit">{tempUnit}</span>
+                  </>
+                ) : (
+                  <>
+                    {Math.round(quickViewData.weather.minTemp)}<span className="badge-unit">{tempUnit}</span> <span className="badge-dash">-</span> {Math.round(quickViewData.weather.maxTemp)}<span className="badge-unit">{tempUnit}</span>
+                  </>
+                )}
+              </div>
               </div>
               <div className="quick-weather-badge">
                 <div className="badge-label">
