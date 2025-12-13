@@ -6,6 +6,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
+    "predeploy": "node scripts/update-version.js",
     "deploy": "npm run build && npm run deploy:docs && gh-pages -d dist",
     "deploy:docs": "mkdir -p dist/docs && cp -r docs/* dist/docs/"
   },
