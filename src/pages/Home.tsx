@@ -13,9 +13,10 @@ interface HomeProps {
     recommendation: ClothingRecommendation,
     config: RideConfig
   ) => void;
+  weatherOverride?: Partial<WeatherSummary> | null;
 }
 
-export function Home({ onLocationFound, onManualInput, onQuickRecommendation }: HomeProps) {
+export function Home({ onLocationFound, onManualInput, onQuickRecommendation, weatherOverride }: HomeProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [quickViewData, setQuickViewData] = useState<{
@@ -49,7 +50,13 @@ export function Home({ onLocationFound, onManualInput, onQuickRecommendation }: 
             units: storage.getUnits(),
           };
 
-          const weather = await fetchWeatherForecast(location, config);
+          let weather = await fetchWeatherForecast(location, config);
+          
+          // Apply weather override if in dev mode
+          if (weatherOverride) {
+            weather = { ...weather, ...weatherOverride };
+          }
+          
           const recommendation = recommendClothing(weather, config);
 
           setQuickViewData({ weather, recommendation, config });
@@ -68,11 +75,11 @@ export function Home({ onLocationFound, onManualInput, onQuickRecommendation }: 
     );
   };
 
-  // Auto-load quick view on mount
+  // Auto-load quick view on mount and when override changes
   useEffect(() => {
     loadQuickView();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [weatherOverride]);
 
   const handleUseLocation = () => {
     setLoading(true);
@@ -105,6 +112,26 @@ export function Home({ onLocationFound, onManualInput, onQuickRecommendation }: 
 
   const formatTemp = (temp: number) => Math.round(temp) + tempUnit;
   const formatWind = (wind: number) => Math.round(wind) + ' ' + windUnit;
+
+  // Helper function to determine emoji for clothing items
+  const getItemEmoji = (item: string, weather: WeatherSummary, config: RideConfig): string => {
+    const itemLower = item.toLowerCase();
+    const isMetric = config.units === 'metric';
+    const wind = isMetric ? weather.maxWindSpeed : weather.maxWindSpeed * 1.60934;
+
+    // Wind-related items
+    if (itemLower.includes('wind') || (itemLower.includes('vest') && wind > 20)) {
+      return '💨'; // Wind emoji
+    }
+
+    // Rain-related items
+    if (itemLower.includes('rain') || itemLower.includes('waterproof')) {
+      return '🌧️'; // Rain emoji
+    }
+
+    // Everything else is temperature-related
+    return '🌡️'; // Temperature gauge emoji
+  };
 
   return (
     <div className="page home">
@@ -141,7 +168,10 @@ export function Home({ onLocationFound, onManualInput, onQuickRecommendation }: 
                 <h3>Head</h3>
                 <ul>
                   {quickViewData.recommendation.head.map((item, idx) => (
-                    <li key={idx}>{item}</li>
+                    <li key={idx}>
+                      <span className="item-emoji">{getItemEmoji(item, quickViewData.weather, quickViewData.config)}</span>
+                      {item}
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -152,7 +182,10 @@ export function Home({ onLocationFound, onManualInput, onQuickRecommendation }: 
                 <h3>Neck / Face</h3>
                 <ul>
                   {quickViewData.recommendation.neckFace.map((item, idx) => (
-                    <li key={idx}>{item}</li>
+                    <li key={idx}>
+                      <span className="item-emoji">{getItemEmoji(item, quickViewData.weather, quickViewData.config)}</span>
+                      {item}
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -163,7 +196,10 @@ export function Home({ onLocationFound, onManualInput, onQuickRecommendation }: 
                 <h3>Chest</h3>
                 <ul>
                   {quickViewData.recommendation.chest.map((item, idx) => (
-                    <li key={idx}>{item}</li>
+                    <li key={idx}>
+                      <span className="item-emoji">{getItemEmoji(item, quickViewData.weather, quickViewData.config)}</span>
+                      {item}
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -174,7 +210,10 @@ export function Home({ onLocationFound, onManualInput, onQuickRecommendation }: 
                 <h3>Legs</h3>
                 <ul>
                   {quickViewData.recommendation.legs.map((item, idx) => (
-                    <li key={idx}>{item}</li>
+                    <li key={idx}>
+                      <span className="item-emoji">{getItemEmoji(item, quickViewData.weather, quickViewData.config)}</span>
+                      {item}
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -185,7 +224,10 @@ export function Home({ onLocationFound, onManualInput, onQuickRecommendation }: 
                 <h3>Hands</h3>
                 <ul>
                   {quickViewData.recommendation.hands.map((item, idx) => (
-                    <li key={idx}>{item}</li>
+                    <li key={idx}>
+                      <span className="item-emoji">{getItemEmoji(item, quickViewData.weather, quickViewData.config)}</span>
+                      {item}
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -196,7 +238,10 @@ export function Home({ onLocationFound, onManualInput, onQuickRecommendation }: 
                 <h3>Feet</h3>
                 <ul>
                   {quickViewData.recommendation.feet.map((item, idx) => (
-                    <li key={idx}>{item}</li>
+                    <li key={idx}>
+                      <span className="item-emoji">{getItemEmoji(item, quickViewData.weather, quickViewData.config)}</span>
+                      {item}
+                    </li>
                   ))}
                 </ul>
               </div>

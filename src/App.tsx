@@ -6,6 +6,7 @@ import { Recommendation } from './pages/Recommendation';
 import { Settings } from './pages/Settings';
 import { ManualLocation } from './pages/ManualLocation';
 import { ClothingGuide } from './pages/ClothingGuide';
+import { DevTools } from './components/DevTools';
 import { fetchWeatherForecast } from './services/weatherService';
 import { recommendClothing } from './logic/clothingEngine';
 import './App.css';
@@ -18,32 +19,39 @@ function App() {
   const [recommendation, setRecommendation] = useState<ClothingRecommendation | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [weatherOverride, setWeatherOverride] = useState<Partial<WeatherSummary> | null>(null);
 
   const handleLocationFound = (loc: Location) => {
     setLocation(loc);
     setPage('setup');
   };
 
-  const handleRideConfig = async (rideConfig: RideConfig) => {
-    if (!location) return;
+      const handleRideConfig = async (rideConfig: RideConfig) => {
+        if (!location) return;
 
-    setLoading(true);
-    setError(null);
-    setConfig(rideConfig);
+        setLoading(true);
+        setError(null);
+        setConfig(rideConfig);
 
-    try {
-      const weatherData = await fetchWeatherForecast(location, rideConfig);
-      const clothingRec = recommendClothing(weatherData, rideConfig);
-      
-      setWeather(weatherData);
-      setRecommendation(clothingRec);
-      setPage('recommendation');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch weather data');
-    } finally {
-      setLoading(false);
-    }
-  };
+        try {
+          let weatherData = await fetchWeatherForecast(location, rideConfig);
+          
+          // Apply weather override if in dev mode
+          if (weatherOverride) {
+            weatherData = { ...weatherData, ...weatherOverride };
+          }
+          
+          const clothingRec = recommendClothing(weatherData, rideConfig);
+
+          setWeather(weatherData);
+          setRecommendation(clothingRec);
+          setPage('recommendation');
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to fetch weather data');
+        } finally {
+          setLoading(false);
+        }
+      };
 
   const handleNewRecommendation = () => {
     setPage('home');
@@ -92,18 +100,19 @@ function App() {
           </div>
         )}
 
-        {!loading && page === 'home' && (
-          <Home
-            onLocationFound={handleLocationFound}
-            onManualInput={() => setPage('manual')}
-            onQuickRecommendation={(loc, weather, rec, cfg) => {
-              setLocation(loc);
-              setWeather(weather);
-              setRecommendation(rec);
-              setConfig(cfg);
-            }}
-          />
-        )}
+            {!loading && page === 'home' && (
+              <Home
+                onLocationFound={handleLocationFound}
+                onManualInput={() => setPage('manual')}
+                onQuickRecommendation={(loc, weather, rec, cfg) => {
+                  setLocation(loc);
+                  setWeather(weather);
+                  setRecommendation(rec);
+                  setConfig(cfg);
+                }}
+                weatherOverride={weatherOverride}
+              />
+            )}
 
         {!loading && page === 'manual' && (
           <ManualLocation
@@ -132,13 +141,15 @@ function App() {
           <Settings onBack={() => setPage('home')} />
         )}
 
-        {!loading && page === 'guide' && (
-          <ClothingGuide onBack={() => setPage('home')} />
-        )}
-      </main>
-    </div>
-  );
-}
+            {!loading && page === 'guide' && (
+              <ClothingGuide onBack={() => setPage('home')} />
+            )}
+          </main>
 
-export default App;
+          <DevTools onWeatherOverride={setWeatherOverride} />
+        </div>
+      );
+    }
+
+    export default App;
 

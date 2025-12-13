@@ -437,18 +437,18 @@ main {
 .quick-kit li,
 .quick-accessories li {
   padding: 0.25rem 0;
-  padding-left: 1.25rem;
+  padding-left: 0;
   position: relative;
   font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.quick-kit li::before,
-.quick-accessories li::before {
-  content: '•';
-  position: absolute;
-  left: 0;
-  color: var(--primary-color);
-  font-weight: bold;
+.item-emoji {
+  font-size: 1.1rem;
+  display: inline-block;
+  min-width: 1.5rem;
 }
 
 .quick-weather-summary {
