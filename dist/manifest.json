@@ -1,6 +1,6 @@
 {
-  "name": "DressMyRide",
-  "short_name": "DressMyRide",
+  "name": "Dress My Ride",
+  "short_name": "Dress My Ride",
   "description": "Cycling clothing recommendations based on weather",
   "start_url": "/DressMyRide/",
   "display": "standalone",

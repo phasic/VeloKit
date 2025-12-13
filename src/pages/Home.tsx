@@ -17,8 +17,7 @@ interface HomeProps {
   weatherOverride?: Partial<WeatherSummary> | null;
 }
 
-export function Home({ onLocationFound, onManualInput, onQuickRecommendation, weatherOverride }: HomeProps) {
-  const [loading, setLoading] = useState(false);
+export function Home({ onQuickRecommendation, weatherOverride }: HomeProps) {
   const [error, setError] = useState<string | null>(null);
   const [quickViewData, setQuickViewData] = useState<{
     weather: WeatherSummary;
@@ -83,30 +82,6 @@ export function Home({ onLocationFound, onManualInput, onQuickRecommendation, we
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weatherOverride]);
 
-  const handleUseLocation = () => {
-    setLoading(true);
-    setError(null);
-
-    if (!navigator.geolocation) {
-      setError('Geolocation is not supported by your browser');
-      setLoading(false);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        onLocationFound({
-          lat: position.coords.latitude,
-          lon: position.coords.longitude,
-        });
-        setLoading(false);
-      },
-      () => {
-        setError('Location permission denied. Please use manual input.');
-        setLoading(false);
-      }
-    );
-  };
 
   const isMetric = quickViewData?.config.units === 'metric';
   const tempUnit = isMetric ? '°C' : '°F';

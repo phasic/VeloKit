@@ -7,7 +7,7 @@ interface GuideProps {
   onBack?: () => void;
 }
 
-export function ClothingGuide({ onBack }: GuideProps) {
+export function ClothingGuide({}: GuideProps) {
   const [units, setUnits] = useState<'metric' | 'imperial'>('metric');
   const [openSections, setOpenSections] = useState<{
     uniqueItems: boolean;
