@@ -6,7 +6,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && gh-pages -d dist"
+    "deploy": "npm run build && npm run deploy:docs && gh-pages -d dist",
+    "deploy:docs": "mkdir -p dist/docs && cp -r docs/* dist/docs/"
   },
   "dependencies": {
     "react": "^18.2.0",

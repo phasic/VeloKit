@@ -9,7 +9,7 @@ import { About } from './pages/About';
 import { Welcome } from './pages/Welcome';
 import { DevTools } from './components/DevTools';
 import { BottomTabBar } from './components/BottomTabBar';
-import { InstallPrompt, isAppInstalled, triggerInstall, globalDeferredPrompt } from './components/InstallPrompt';
+import { InstallPrompt, isAppInstalled } from './components/InstallPrompt';
 import { fetchWeatherForecast } from './services/weatherService';
 import { recommendClothing } from './logic/clothingEngine';
 import { storage } from './utils/storage';
@@ -32,30 +32,21 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [weatherOverride, setWeatherOverride] = useState<Partial<WeatherSummary> | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [hasInstallPrompt, setHasInstallPrompt] = useState(false);
+  const [forceShowInstallPrompt, setForceShowInstallPrompt] = useState(false);
 
-  // Check if app is installed and if install prompt is available
+  // Check if app is installed
   useEffect(() => {
     const checkInstallStatus = () => {
       setIsInstalled(isAppInstalled());
-      setHasInstallPrompt(globalDeferredPrompt !== null);
     };
     
     // Check immediately
     checkInstallStatus();
     
-    const handleInstallPromptAvailable = () => {
-      checkInstallStatus();
-    };
-    
-    // Listen for the custom event when prompt becomes available
-    window.addEventListener('installpromptavailable', handleInstallPromptAvailable);
-    
-    // Also check periodically in case the event fires before we're listening
+    // Check periodically in case status changes
     const interval = setInterval(checkInstallStatus, 1000);
     
     return () => {
-      window.removeEventListener('installpromptavailable', handleInstallPromptAvailable);
       clearInterval(interval);
     };
   }, []);
@@ -141,15 +132,16 @@ function App() {
           {!isInstalled && (
             <button
               className="btn-icon"
-              onClick={async () => {
-                const installed = await triggerInstall();
-                if (installed) {
+              onClick={() => {
+                // Double-check if app is installed (in case detection missed it)
+                const currentlyInstalled = isAppInstalled();
+                if (currentlyInstalled) {
                   setIsInstalled(true);
-                  setHasInstallPrompt(false);
-                } else if (!hasInstallPrompt) {
-                  // If prompt not available, show alert
-                  alert('Install prompt not available yet. The browser will show the install option when the app meets PWA criteria.');
+                  return;
                 }
+
+                // Force show the install prompt (same as DevTools)
+                setForceShowInstallPrompt(true);
               }}
               aria-label="Install App"
               title="Install App"
@@ -254,7 +246,12 @@ function App() {
             />
           )}
 
-          {page !== 'welcome' && <InstallPrompt />}
+          {page !== 'welcome' && (
+            <InstallPrompt 
+              forceShow={forceShowInstallPrompt}
+              onForceShowChange={setForceShowInstallPrompt}
+            />
+          )}
         </div>
       );
     }

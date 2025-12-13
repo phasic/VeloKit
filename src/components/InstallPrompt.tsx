@@ -43,7 +43,12 @@ if (typeof window !== 'undefined') {
   });
 }
 
-export function InstallPrompt() {
+interface InstallPromptProps {
+  forceShow?: boolean;
+  onForceShowChange?: (show: boolean) => void;
+}
+
+export function InstallPrompt({ forceShow: propForceShow = false, onForceShowChange }: InstallPromptProps = {}) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(globalDeferredPrompt);
   const [showPrompt, setShowPrompt] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -57,7 +62,8 @@ export function InstallPrompt() {
       return;
     }
 
-    const forceShow = storage.getForceInstallPrompt();
+    const devToolsForceShow = storage.getForceInstallPrompt();
+    const shouldForceShow = propForceShow || devToolsForceShow;
     
     // Check if we already have a deferred prompt (from global or previous mount)
     if (globalDeferredPrompt && !deferredPrompt) {
@@ -85,7 +91,7 @@ export function InstallPrompt() {
         setWaitingForPrompt(false);
       }
       
-      if (forceShow) {
+      if (shouldForceShow) {
         // If forced, show immediately
         setShowPrompt(true);
         if (!globalDeferredPrompt && !deferredPrompt) {
@@ -101,7 +107,8 @@ export function InstallPrompt() {
         const DAY_IN_MS = 24 * 60 * 60 * 1000;
         
         // Show prompt if not dismissed in the last 7 days and we have a deferred prompt
-        if (globalDeferredPrompt && (!dismissedTime || (now - dismissedTime > 7 * DAY_IN_MS))) {
+        // OR if forceShow is true
+        if (shouldForceShow || (globalDeferredPrompt && (!dismissedTime || (now - dismissedTime > 7 * DAY_IN_MS)))) {
           setShowPrompt(true);
         }
       }
@@ -142,8 +149,9 @@ export function InstallPrompt() {
       // Stop waiting since user clicked (or timeout already cleared it)
       setWaitingForPrompt(false);
       
-      const forceShow = storage.getForceInstallPrompt();
-      if (forceShow) {
+      const devToolsForceShow = storage.getForceInstallPrompt();
+      const shouldForceShow = propForceShow || devToolsForceShow;
+      if (shouldForceShow) {
         // Check if Safari (which doesn't support beforeinstallprompt)
         const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
         if (isSafari) {
@@ -173,22 +181,33 @@ export function InstallPrompt() {
     // Wait for the user to respond
     const { outcome } = await promptToUse.userChoice;
 
-    const forceShow = storage.getForceInstallPrompt();
+    const devToolsForceShow = storage.getForceInstallPrompt();
+    const shouldForceShow = propForceShow || devToolsForceShow;
 
     if (outcome === 'accepted') {
       setIsInstalled(true);
       setShowPrompt(false);
       // Clear force flag if install was successful
-      if (forceShow) {
-        storage.setForceInstallPrompt(false);
+      if (shouldForceShow) {
+        if (propForceShow && onForceShowChange) {
+          onForceShowChange(false);
+        }
+        if (devToolsForceShow) {
+          storage.setForceInstallPrompt(false);
+        }
       }
     } else {
       // User dismissed, remember for 7 days
       storage.setInstallPromptDismissed(Date.now());
       setShowPrompt(false);
       // Clear force flag if dismissed
-      if (forceShow) {
-        storage.setForceInstallPrompt(false);
+      if (shouldForceShow) {
+        if (propForceShow && onForceShowChange) {
+          onForceShowChange(false);
+        }
+        if (devToolsForceShow) {
+          storage.setForceInstallPrompt(false);
+        }
       }
     }
 
@@ -200,21 +219,32 @@ export function InstallPrompt() {
     storage.setInstallPromptDismissed(Date.now());
     setShowPrompt(false);
     // Clear force flag if it was forced
+    if (propForceShow && onForceShowChange) {
+      onForceShowChange(false);
+    }
     if (storage.getForceInstallPrompt()) {
       storage.setForceInstallPrompt(false);
     }
   };
 
-  const forceShow = storage.getForceInstallPrompt();
-  const disablePrompt = storage.getDisableInstallPrompt();
-  
-  // Don't show if:
-  // - App is already installed
-  // - User has disabled the prompt (unless forced via DevTools)
-  // - Not showing and not forced
-  if (isInstalled || (disablePrompt && !forceShow) || (!showPrompt && !forceShow)) {
-    return null;
-  }
+    const devToolsForceShow = storage.getForceInstallPrompt();
+    const shouldForceShow = propForceShow || devToolsForceShow;
+    const disablePrompt = storage.getDisableInstallPrompt();
+    
+    // Update parent component when force show changes (always call hooks in same order)
+    useEffect(() => {
+      if (onForceShowChange && propForceShow) {
+        onForceShowChange(true);
+      }
+    }, [propForceShow, onForceShowChange]);
+    
+    // Don't show if:
+    // - App is already installed
+    // - User has disabled the prompt (unless forced)
+    // - Not showing and not forced
+    if (isInstalled || (disablePrompt && !shouldForceShow) || (!showPrompt && !shouldForceShow)) {
+      return null;
+    }
 
   return (
     <>
