@@ -46,6 +46,25 @@ The built files will be in the `dist` directory.
 
 The app is configured to deploy to GitHub Pages at `/DressMyRide/`.
 
+### Quick Deployment (Recommended)
+
+Simply run:
+```bash
+npm run deploy
+```
+
+This will build the project and deploy it to the `gh-pages` branch automatically.
+
+Alternatively, use the shell script:
+```bash
+./deploy.sh
+```
+
+**Note:** Make sure GitHub Pages is configured to serve from the `gh-pages` branch:
+- Go to repository Settings → Pages
+- Source: Deploy from a branch
+- Branch: `gh-pages` / `(root)`
+
 ### Automatic Deployment (GitHub Actions)
 
 Push to the `main` branch and GitHub Actions will automatically build and deploy to the `gh-pages` branch.
@@ -58,9 +77,9 @@ npm run build
 ```
 
 2. Deploy the `dist` folder to GitHub Pages:
-   - Go to repository Settings > Pages
-   - Select the `gh-pages` branch and `/` (root) folder
-   - Or manually push the `dist` folder contents to the `gh-pages` branch
+```bash
+npx gh-pages -d dist
+```
 
 ## Configuration
 
