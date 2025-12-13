@@ -92,7 +92,10 @@ function App() {
   return (
     <div className="app">
       <header>
-        <h1>DressMyRide</h1>
+        <div className="header-title">
+          <img src={`${import.meta.env.BASE_URL}pwa-192x192.png`} alt="DressMyRide" className="header-icon" />
+          <h1>DressMyRide</h1>
+        </div>
         <div className="header-actions">
           <button
             className="btn-icon"
