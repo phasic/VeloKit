@@ -12,9 +12,11 @@ export async function fetchWeatherForecast(
     throw new Error('OpenWeather API key not configured');
   }
 
-  // Check cache (keyed by location)
-  const locationKey = `${location.lat.toFixed(2)},${location.lon.toFixed(2)}`;
-  const cached = storage.getWeatherCache(locationKey);
+  // Check cache (keyed by location, start time, and duration)
+  // Round start time to nearest hour for cache key to avoid too many cache entries
+  const startTimeRounded = Math.floor(config.startTime.getTime() / (60 * 60 * 1000)) * (60 * 60 * 1000);
+  const cacheKey = `${location.lat.toFixed(2)},${location.lon.toFixed(2)},${startTimeRounded},${config.durationHours}`;
+  const cached = storage.getWeatherCache(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
     return cached.data;
   }
@@ -63,8 +65,8 @@ export async function fetchWeatherForecast(
     ),
   };
 
-  // Cache the result (keyed by location)
-  storage.setWeatherCache(summary, locationKey);
+  // Cache the result (keyed by location, start time, and duration)
+  storage.setWeatherCache(summary, cacheKey);
 
   return summary;
 }

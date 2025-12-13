@@ -59,7 +59,7 @@ function App() {
         <h1>DressMyRide</h1>
         <button
           className="btn-icon"
-          onClick={() => setPage('settings')}
+          onClick={() => setPage(page === 'settings' ? 'home' : 'settings')}
           aria-label="Settings"
         >
           ⚙️
@@ -85,6 +85,12 @@ function App() {
           <Home
             onLocationFound={handleLocationFound}
             onManualInput={() => setPage('manual')}
+            onQuickRecommendation={(loc, weather, rec, cfg) => {
+              setLocation(loc);
+              setWeather(weather);
+              setRecommendation(rec);
+              setConfig(cfg);
+            }}
           />
         )}
 

@@ -4,6 +4,7 @@ const STORAGE_KEYS = {
   API_KEY: 'dressmyride_api_key',
   WEATHER_CACHE: 'dressmyride_weather_cache',
   UNITS: 'dressmyride_units',
+  QUICK_VIEW: 'dressmyride_quick_view',
 } as const;
 
 export const storage = {
@@ -50,6 +51,15 @@ export const storage = {
 
   clearWeatherCache: (): void => {
     localStorage.removeItem(STORAGE_KEYS.WEATHER_CACHE);
+  },
+
+  getQuickView: (): boolean => {
+    const value = localStorage.getItem(STORAGE_KEYS.QUICK_VIEW);
+    return value === 'true';
+  },
+
+  setQuickView: (enabled: boolean): void => {
+    localStorage.setItem(STORAGE_KEYS.QUICK_VIEW, enabled ? 'true' : 'false');
   },
 };
 
