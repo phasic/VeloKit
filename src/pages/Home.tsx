@@ -112,8 +112,6 @@ export function Home({ onQuickRecommendation, weatherOverride }: HomeProps) {
 
   return (
     <div className="page home">
-      <p className="subtitle">Current conditions</p>
-
       {quickViewLoading && (
         <div className="loading">
           <div className="spinner"></div>
