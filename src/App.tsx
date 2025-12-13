@@ -7,7 +7,6 @@ import { Settings } from './pages/Settings';
 import { ClothingGuide } from './pages/ClothingGuide';
 import { About } from './pages/About';
 import { Welcome } from './pages/Welcome';
-import { DevTools } from './components/DevTools';
 import { BottomTabBar } from './components/BottomTabBar';
 import { InstallPrompt } from './components/InstallPrompt';
 import { fetchWeatherForecast } from './services/weatherService';
@@ -32,7 +31,31 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [weatherOverride, setWeatherOverride] = useState<Partial<WeatherSummary> | null>(null);
   const [forceShowInstallPrompt, setForceShowInstallPrompt] = useState(false);
+  const [showFloatingActions, setShowFloatingActions] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
+  // Handle scroll for floating actions visibility
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY < 10) {
+        // Always show at top
+        setShowFloatingActions(true);
+      } else if (currentScrollY > lastScrollY) {
+        // Scrolling down - hide
+        setShowFloatingActions(false);
+      } else {
+        // Scrolling up - show
+        setShowFloatingActions(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   // Initialize theme on app load
   useEffect(() => {
@@ -104,27 +127,20 @@ function App() {
 
   return (
     <div className="app">
-      {page !== 'welcome' && (
-      <header>
-        <div className="header-title">
-          <img src={`${import.meta.env.BASE_URL}pwa-192x192.png`} alt="Dress My Ride" className="header-icon" />
-          <h1>Dress My Ride</h1>
-        </div>
-        <div className="header-actions">
-          <DevTools onWeatherOverride={setWeatherOverride} />
-          <button
-            className="btn-icon"
-            onClick={() => setPage(page === 'settings' ? 'home' : 'settings')}
-            aria-label="Settings"
-          >
-            <img
-              src={`${import.meta.env.BASE_URL}settings.png`}
-              alt="Settings"
-              className="settings-icon"
-            />
-          </button>
-        </div>
-      </header>
+      {page !== 'welcome' && page !== 'settings' && page !== 'about' && (
+      <div className={`floating-header-actions ${showFloatingActions ? 'visible' : 'hidden'}`}>
+        <button
+          className="btn-icon floating-action"
+          onClick={() => setPage('settings')}
+          aria-label="Settings"
+        >
+          <img
+            src={`${import.meta.env.BASE_URL}settings.png`}
+            alt="Settings"
+            className="settings-icon"
+          />
+        </button>
+      </div>
       )}
 
       <main>
@@ -184,6 +200,7 @@ function App() {
             onBack={() => setPage('home')} 
             onAbout={() => setPage('about')}
             onShowInstallPrompt={setForceShowInstallPrompt}
+            onWeatherOverride={setWeatherOverride}
           />
         )}
 

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import './About.css';
 
 interface AboutProps {
@@ -5,8 +6,13 @@ interface AboutProps {
 }
 
 export function About({ onBack }: AboutProps) {
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
-    <div className="page about">
+    <div className="page about" style={{ paddingBottom: '100px' }}>
       <h2>About</h2>
 
       <div className="about-section">
@@ -96,9 +102,11 @@ export function About({ onBack }: AboutProps) {
         <p>1.0.0</p>
       </div>
 
-      <button className="btn btn-secondary" onClick={onBack}>
-        Back
-      </button>
+      <div className="about-sticky-actions">
+        <button className="btn btn-secondary" onClick={onBack}>
+          Back
+        </button>
+      </div>
     </div>
   );
 }

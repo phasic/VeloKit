@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { storage } from '../utils/storage';
 import { isAppInstalled } from '../components/InstallPrompt';
+import { DevTools } from '../components/DevTools';
 
 interface SettingsProps {
   onBack: () => void;
   onAbout: () => void;
   onShowInstallPrompt?: (show: boolean) => void;
+  onWeatherOverride?: (override: Partial<import('../types').WeatherSummary> | null) => void;
 }
 
-export function Settings({ onBack, onAbout, onShowInstallPrompt }: SettingsProps) {
+export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverride }: SettingsProps) {
   const [apiKey, setApiKey] = useState(() => storage.getApiKey() || '');
   const [units, setUnits] = useState<'metric' | 'imperial'>(() => storage.getUnits());
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => storage.getTheme());
@@ -20,6 +22,11 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt }: SettingsProps
   const [saved, setSaved] = useState(false);
   const [savedMessage, setSavedMessage] = useState<string>('');
   const [showClearCacheConfirm, setShowClearCacheConfirm] = useState(false);
+  const [isApiKeyLocked, setIsApiKeyLocked] = useState(() => {
+    const key = storage.getApiKey();
+    return !!key && key.length > 0;
+  });
+  const [showUnlockConfirm, setShowUnlockConfirm] = useState(false);
 
   useEffect(() => {
     storage.setUnits(units);
@@ -58,9 +65,29 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt }: SettingsProps
     storage.setDateFormat(dateFormat);
     storage.setDefaultDuration(defaultDuration);
     applyTheme(theme);
+    
+    // Lock API key if it's valid and not empty
+    if (apiKey && apiKey.length > 0) {
+      setIsApiKeyLocked(true);
+    }
+    
     setSavedMessage('Settings saved!');
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setTimeout(() => {
+      setSaved(false);
+      onBack();
+    }, 500);
+  };
+
+  const handleUnlockApiKey = () => {
+    setIsApiKeyLocked(false);
+    setShowUnlockConfirm(false);
+  };
+
+  const handleLockApiKey = () => {
+    if (apiKey && apiKey.length > 0) {
+      setIsApiKeyLocked(true);
+    }
   };
 
   const applyTheme = (selectedTheme: 'light' | 'dark' | 'system') => {
@@ -87,8 +114,12 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt }: SettingsProps
   };
 
   return (
-    <div className="page settings">
-      <h2>Settings</h2>
+    <div className="page settings" style={{ paddingBottom: '100px' }}>
+      <div className="settings-header">
+        <img src={`${import.meta.env.BASE_URL}pwa-192x192.png`} alt="Dress My Ride" className="settings-app-icon" />
+        <h2>Dress My Ride</h2>
+      </div>
+      <h3>Settings</h3>
 
       <form onSubmit={handleSave}>
         <div className="form-group">
@@ -99,26 +130,52 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt }: SettingsProps
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
             placeholder="Enter your API key"
-            required
+            required={!isApiKeyLocked}
+            disabled={isApiKeyLocked}
+            style={{ opacity: isApiKeyLocked ? 0.6 : 1 }}
           />
-          <small>
-            Get your API key at{' '}
-            <a
-              href="https://openweathermap.org/api"
-              target="_blank"
-              rel="noopener noreferrer"
+          {isApiKeyLocked && (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setShowUnlockConfirm(true)}
+              style={{ marginTop: '8px', width: '100%' }}
             >
-              openweathermap.org
-            </a>
-            . <strong>Note:</strong> This app requires One Call API 3.0, which needs a subscription (free tier available). Subscribe at{' '}
-            <a
-              href="https://openweathermap.org/api/one-call-3"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              openweathermap.org/api/one-call-3
-            </a>
-          </small>
+              Unlock API Key
+            </button>
+          )}
+          {!isApiKeyLocked && (
+            <>
+              {apiKey && apiKey.length > 0 && (
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={handleLockApiKey}
+                  style={{ marginTop: '8px', width: '100%' }}
+                >
+                  Lock API Key
+                </button>
+              )}
+              <small>
+                Get your API key at{' '}
+              <a
+                href="https://openweathermap.org/api"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                openweathermap.org
+              </a>
+              . <strong>Note:</strong> This app requires One Call API 3.0, which needs a subscription (free tier available). Subscribe at{' '}
+              <a
+                href="https://openweathermap.org/api/one-call-3"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                openweathermap.org/api/one-call-3
+              </a>
+            </small>
+            </>
+          )}
         </div>
 
             <div className="form-group">
@@ -243,7 +300,6 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt }: SettingsProps
               <small>Never show the weekly reminder install prompt to add this app to your home screen</small>
             </div>
 
-        {saved && <div className="success">{savedMessage}</div>}
 
         <div className="settings-about-section">
           <div className="settings-group-item" onClick={() => setShowClearCacheConfirm(true)}>
@@ -260,15 +316,21 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt }: SettingsProps
           </button>
         </div>
 
-        <div className="form-actions">
-          <button type="button" className="btn btn-secondary" onClick={onBack}>
-            Back
-          </button>
-          <button type="submit" className="btn btn-primary">
-            Save
-          </button>
-        </div>
       </form>
+
+      <div className="settings-sticky-actions">
+        {saved && (
+          <div className="settings-saved-message">
+            {savedMessage}
+          </div>
+        )}
+        <button type="button" className="btn btn-secondary" onClick={onBack}>
+          Back
+        </button>
+        <button type="button" className="btn btn-primary" onClick={(e) => { e.preventDefault(); handleSave(e); }}>
+          Save
+        </button>
+      </div>
 
       {showClearCacheConfirm && (
         <div className="modal-overlay" onClick={() => setShowClearCacheConfirm(false)}>
@@ -292,6 +354,37 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt }: SettingsProps
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {showUnlockConfirm && (
+        <div className="modal-overlay" onClick={() => setShowUnlockConfirm(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Unlock API Key?</h3>
+            <p>Are you sure you want to unlock the API key? You will be able to edit or delete it.</p>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setShowUnlockConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleUnlockApiKey}
+              >
+                Unlock
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {onWeatherOverride && (
+        <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid var(--separator-color)' }}>
+          <DevTools onWeatherOverride={onWeatherOverride} />
         </div>
       )}
     </div>

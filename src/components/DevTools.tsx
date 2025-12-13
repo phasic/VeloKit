@@ -67,14 +67,17 @@ export function DevTools({ onWeatherOverride }: DevToolsProps) {
 
   return (
     <>
-      <button
-        className="btn-icon dev-tools-btn"
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label="Dev Tools"
-        title="Dev Tools"
-      >
-        {isOpen ? '✕' : '🔧'}
-      </button>
+      <div style={{ marginBottom: '1rem' }}>
+        <button
+          className="btn btn-secondary dev-tools-btn"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label="Dev Tools"
+          title="Dev Tools"
+          style={{ width: '100%' }}
+        >
+          {isOpen ? '✕ Close Dev Tools' : '🔧 Open Dev Tools'}
+        </button>
+      </div>
 
       {isOpen && (
         <div className="dev-tools-panel">
