@@ -43,6 +43,7 @@ export function RideSetup({ onContinue }: RideSetupProps) {
           navigator.geolocation.getCurrentPosition(resolve, reject);
         });
 
+        // Use precise coordinates (rounding happens in fetchWeatherForecast for cache key)
         location = {
           lat: position.coords.latitude,
           lon: position.coords.longitude,

@@ -632,6 +632,14 @@ main {
   font-weight: 600;
 }
 
+.location-item .value {
+  text-align: right;
+}
+
+.location-item .value > div {
+  text-align: right;
+}
+
 .location-coords {
   font-size: 0.85em;
   color: var(--secondary-color);

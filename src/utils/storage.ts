@@ -3,12 +3,14 @@ import { WeatherSummary } from '../types';
 const STORAGE_KEYS = {
   API_KEY: 'dressmyride_api_key',
   WEATHER_CACHE: 'dressmyride_weather_cache',
+  GEOCODE_CACHE: 'dressmyride_geocode_cache',
   UNITS: 'dressmyride_units',
   QUICK_VIEW: 'dressmyride_quick_view',
   THEME: 'dressmyride_theme',
   DATE_FORMAT: 'dressmyride_date_format',
   DEFAULT_DURATION: 'dressmyride_default_duration',
   DEMO_MODE: 'dressmyride_demo_mode',
+  WELCOME_SEEN: 'dressmyride_welcome_seen',
 } as const;
 
 export const storage = {
@@ -29,32 +31,126 @@ export const storage = {
     localStorage.setItem(STORAGE_KEYS.UNITS, units);
   },
 
-  getWeatherCache: (locationKey?: string): { data: WeatherSummary; timestamp: number; locationKey?: string } | null => {
+  getWeatherCache: (locationKey: string): { data: WeatherSummary; timestamp: number } | null => {
     const cached = localStorage.getItem(STORAGE_KEYS.WEATHER_CACHE);
     if (!cached) return null;
     try {
       const parsed = JSON.parse(cached);
-      // If location key is provided, only return cache if it matches
-      if (locationKey && parsed.locationKey !== locationKey) {
+      
+      // Handle migration from old format (single object with locationKey property)
+      if (parsed.locationKey !== undefined && parsed.data !== undefined) {
+        // Old format - migrate to new format
+        const oldKey = parsed.locationKey;
+        const cacheMap: Record<string, { data: WeatherSummary; timestamp: number }> = {
+          [oldKey]: {
+            data: parsed.data,
+            timestamp: parsed.timestamp || Date.now(),
+          }
+        };
+        localStorage.setItem(STORAGE_KEYS.WEATHER_CACHE, JSON.stringify(cacheMap));
+        
+        // Return if it matches the requested key
+        if (locationKey === oldKey) {
+          return cacheMap[oldKey];
+        }
         return null;
       }
-      return parsed;
+      
+      // New format - cache map
+      const cacheMap: Record<string, { data: WeatherSummary; timestamp: number }> = parsed;
+      // Return the cache entry for this specific location key
+      if (locationKey && cacheMap[locationKey]) {
+        return cacheMap[locationKey];
+      }
+      return null;
     } catch {
       return null;
     }
   },
 
-  setWeatherCache: (data: WeatherSummary, locationKey?: string): void => {
-    const cache = {
+  setWeatherCache: (data: WeatherSummary, locationKey: string): void => {
+    // Get existing cache map
+    const cached = localStorage.getItem(STORAGE_KEYS.WEATHER_CACHE);
+    let cacheMap: Record<string, { data: WeatherSummary; timestamp: number }> = {};
+    
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        
+        // Handle migration from old format
+        if (parsed.locationKey !== undefined && parsed.data !== undefined) {
+          // Old format - migrate to new format
+          const oldKey = parsed.locationKey;
+          cacheMap = {
+            [oldKey]: {
+              data: parsed.data,
+              timestamp: parsed.timestamp || Date.now(),
+            }
+          };
+        } else {
+          // New format - already a map
+          cacheMap = parsed;
+        }
+      } catch {
+        // If parsing fails, start with empty map
+        cacheMap = {};
+      }
+    }
+    
+    // Add or update the cache entry for this location key
+    cacheMap[locationKey] = {
       data,
       timestamp: Date.now(),
-      locationKey,
     };
-    localStorage.setItem(STORAGE_KEYS.WEATHER_CACHE, JSON.stringify(cache));
+    
+    localStorage.setItem(STORAGE_KEYS.WEATHER_CACHE, JSON.stringify(cacheMap));
   },
 
   clearWeatherCache: (): void => {
     localStorage.removeItem(STORAGE_KEYS.WEATHER_CACHE);
+  },
+
+  getGeocodeCache: (lat: number, lon: number): string | null => {
+    // Use 2 decimal places (~1.1km precision) for geocoding cache
+    const cacheKey = `${lat.toFixed(2)},${lon.toFixed(2)}`;
+    const cached = localStorage.getItem(STORAGE_KEYS.GEOCODE_CACHE);
+    if (!cached) return null;
+    try {
+      const cacheMap: Record<string, { city: string; timestamp: number }> = JSON.parse(cached);
+      const entry = cacheMap[cacheKey];
+      if (entry) {
+        // Cache geocoding results for 24 hours (city names don't change often)
+        const GEOCODE_CACHE_DURATION = 24 * 60 * 60 * 1000;
+        if (Date.now() - entry.timestamp < GEOCODE_CACHE_DURATION) {
+          return entry.city;
+        }
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  },
+
+  setGeocodeCache: (lat: number, lon: number, city: string): void => {
+    // Use 2 decimal places (~1.1km precision) for geocoding cache
+    const cacheKey = `${lat.toFixed(2)},${lon.toFixed(2)}`;
+    const cached = localStorage.getItem(STORAGE_KEYS.GEOCODE_CACHE);
+    let cacheMap: Record<string, { city: string; timestamp: number }> = {};
+    
+    if (cached) {
+      try {
+        cacheMap = JSON.parse(cached);
+      } catch {
+        cacheMap = {};
+      }
+    }
+    
+    cacheMap[cacheKey] = {
+      city,
+      timestamp: Date.now(),
+    };
+    
+    localStorage.setItem(STORAGE_KEYS.GEOCODE_CACHE, JSON.stringify(cacheMap));
   },
 
   getQuickView: (): boolean => {
@@ -101,6 +197,14 @@ export const storage = {
 
       setDemoMode: (enabled: boolean): void => {
         localStorage.setItem(STORAGE_KEYS.DEMO_MODE, enabled ? 'true' : 'false');
+      },
+
+      getWelcomeSeen: (): boolean => {
+        return localStorage.getItem(STORAGE_KEYS.WELCOME_SEEN) === 'true';
+      },
+
+      setWelcomeSeen: (seen: boolean): void => {
+        localStorage.setItem(STORAGE_KEYS.WELCOME_SEEN, seen ? 'true' : 'false');
       },
     };
 

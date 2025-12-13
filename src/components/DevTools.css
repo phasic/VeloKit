@@ -75,6 +75,26 @@
   margin-bottom: 1rem;
 }
 
+.dev-tools-group h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.dev-tools-section-divider {
+  height: 1px;
+  background: var(--separator-color);
+  margin: 1rem 0;
+}
+
+.dev-tools-hint {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.75rem;
+  color: var(--secondary-color);
+  font-style: italic;
+}
+
 .dev-tools-group label {
   display: block;
   margin-bottom: 0.5rem;

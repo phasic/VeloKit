@@ -6,6 +6,7 @@ import { Recommendation } from './pages/Recommendation';
 import { Settings } from './pages/Settings';
 import { ClothingGuide } from './pages/ClothingGuide';
 import { About } from './pages/About';
+import { Welcome } from './pages/Welcome';
 import { DevTools } from './components/DevTools';
 import { BottomTabBar } from './components/BottomTabBar';
 import { fetchWeatherForecast } from './services/weatherService';
@@ -15,7 +16,13 @@ import { generateDemoWeather } from './utils/demoWeather';
 import './App.css';
 
 function App() {
-  const [page, setPage] = useState<Page>('home');
+  const [page, setPage] = useState<Page>(() => {
+    // Check if user has seen welcome screen
+    if (!storage.getWelcomeSeen()) {
+      return 'welcome';
+    }
+    return 'home';
+  });
   const [location, setLocation] = useState<Location | null>(null);
   const [config, setConfig] = useState<RideConfig | null>(null);
   const [weather, setWeather] = useState<WeatherSummary | null>(null);
@@ -94,6 +101,7 @@ function App() {
 
   return (
     <div className="app">
+      {page !== 'welcome' && (
       <header>
         <div className="header-title">
           <img src={`${import.meta.env.BASE_URL}pwa-192x192.png`} alt="Dress My Ride" className="header-icon" />
@@ -114,6 +122,7 @@ function App() {
           </button>
         </div>
       </header>
+      )}
 
       <main>
         {loading && (
@@ -128,6 +137,13 @@ function App() {
             {error}
             <button onClick={() => setError(null)}>×</button>
           </div>
+        )}
+
+        {!loading && page === 'welcome' && (
+          <Welcome
+            onGetStarted={() => setPage('settings')}
+            onTryDemo={() => setPage('home')}
+          />
         )}
 
             {!loading && page === 'home' && (

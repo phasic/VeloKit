@@ -85,12 +85,13 @@ export function Home({ onQuickRecommendation, weatherOverride }: HomeProps) {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
+          // Use precise coordinates for location (for display and reverse geocoding)
           const location: Location = {
             lat: position.coords.latitude,
             lon: position.coords.longitude,
           };
 
-          // Try to get city name via reverse geocoding
+          // Try to get city name via reverse geocoding (uses 2 decimal places for better accuracy)
           const cityName = await reverseGeocode(location.lat, location.lon);
           if (cityName) {
             location.city = cityName;
@@ -102,6 +103,8 @@ export function Home({ onQuickRecommendation, weatherOverride }: HomeProps) {
             units: storage.getUnits(),
           };
 
+          // Cache is automatically prioritized if valid, otherwise API call is made
+          // fetchWeatherForecast will round coordinates to 1 decimal place for cache key
           let weather: WeatherSummary = await fetchWeatherForecast(location, config);
           
           // Apply weather override if in dev mode
@@ -430,7 +433,7 @@ export function Home({ onQuickRecommendation, weatherOverride }: HomeProps) {
                   {quickViewData.config.durationHours} {quickViewData.config.durationHours === 1 ? 'hour' : 'hours'}
                 </span>
               </div>
-              <div className="weather-item">
+              <div className="weather-item location-item">
                 <span className="label">Location:</span>
                 <span className="value">
                   {quickViewData.location.city ? (

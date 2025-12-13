@@ -14,9 +14,15 @@ export async function fetchWeatherForecast(
 
   // Check cache (keyed by location, start time, and duration)
   // Round start time to nearest hour for cache key to avoid too many cache entries
+  // Round coordinates to 1 decimal place to match the rounding done in Home.tsx
   const startTimeRounded = Math.floor(config.startTime.getTime() / (60 * 60 * 1000)) * (60 * 60 * 1000);
-  const cacheKey = `${location.lat.toFixed(2)},${location.lon.toFixed(2)},${startTimeRounded},${config.durationHours}`;
+  // Normalize durationHours to avoid precision issues (e.g., 2.0 vs 2)
+  const durationNormalized = Math.round(config.durationHours * 10) / 10;
+  const cacheKey = `${location.lat.toFixed(1)},${location.lon.toFixed(1)},${startTimeRounded},${durationNormalized}`;
   const cached = storage.getWeatherCache(cacheKey);
+  
+  // Use cache if it exists and is still valid (not expired)
+  // If cache is expired or doesn't exist, make an API call
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
     return cached.data;
   }
@@ -89,20 +95,33 @@ export async function geocodeCity(cityName: string): Promise<Location> {
     throw new Error('City not found');
   }
 
+  // Round coordinates to 1 decimal place (~11km precision) for consistent caching
   return {
-    lat: data[0].lat,
-    lon: data[0].lon,
+    lat: Math.round(data[0].lat * 10) / 10,
+    lon: Math.round(data[0].lon * 10) / 10,
     city: data[0].name,
   };
 }
 
 export async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
+  // Round coordinates to 2 decimal places (~1.1km precision) for geocoding cache
+  // This is more precise than weather cache (1 decimal = ~11km) to get correct town
+  const roundedLat = Math.round(lat * 100) / 100;
+  const roundedLon = Math.round(lon * 100) / 100;
+  
+  // Check cache first
+  const cached = storage.getGeocodeCache(roundedLat, roundedLon);
+  if (cached) {
+    return cached;
+  }
+
   const apiKey = storage.getApiKey();
   if (!apiKey) {
     return null; // Silently fail if no API key
   }
 
   try {
+    // Use precise coordinates for API call, but cache with 2 decimal places
     const url = `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${apiKey}`;
     const response = await fetch(url);
     
@@ -115,8 +134,13 @@ export async function reverseGeocode(lat: number, lon: number): Promise<string |
       return null;
     }
 
-    // Return the city/town name
-    return data[0].name || null;
+    // Cache the result with rounded coordinates
+    const cityName = data[0].name || null;
+    if (cityName) {
+      storage.setGeocodeCache(roundedLat, roundedLon, cityName);
+    }
+    
+    return cityName;
   } catch {
     return null;
   }

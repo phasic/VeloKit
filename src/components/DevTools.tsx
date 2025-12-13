@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { WeatherSummary } from '../types';
+import { storage } from '../utils/storage';
 import './DevTools.css';
 
 interface DevToolsProps {
@@ -52,6 +53,11 @@ export function DevTools({ onWeatherOverride }: DevToolsProps) {
       maxRainProbability: 0,
       maxPrecipitationIntensity: 0,
     });
+  };
+
+  const handleResetWelcome = () => {
+    storage.setWelcomeSeen(false);
+    window.location.reload();
   };
 
   if (!isLocalhost) {
@@ -174,6 +180,16 @@ export function DevTools({ onWeatherOverride }: DevToolsProps) {
                 <p>Weather data is being overridden. API responses will be modified.</p>
               </div>
             )}
+
+            <div className="dev-tools-section-divider"></div>
+
+            <div className="dev-tools-group">
+              <h4>Testing Tools</h4>
+              <button className="btn btn-secondary" onClick={handleResetWelcome}>
+                Show Welcome Screen
+              </button>
+              <p className="dev-tools-hint">Resets the welcome screen flag and reloads the page</p>
+            </div>
           </div>
         </div>
       )}

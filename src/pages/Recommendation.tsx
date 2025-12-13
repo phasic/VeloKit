@@ -193,7 +193,7 @@ export function Recommendation({
                 {config.durationHours} {config.durationHours === 1 ? 'hour' : 'hours'}
               </span>
             </div>
-            <div className="weather-item">
+            <div className="weather-item location-item">
               <span className="label">Location:</span>
               <span className="value">
                 {location.city || `${location.lat.toFixed(2)}, ${location.lon.toFixed(2)}`}
