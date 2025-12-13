@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Location, RideConfig, WeatherSummary, ClothingRecommendation } from '../types';
 import { storage } from '../utils/storage';
 import { fetchWeatherForecast, reverseGeocode } from '../services/weatherService';
@@ -33,6 +33,7 @@ export function Home({ onQuickRecommendation, weatherOverride }: HomeProps) {
     isRefreshing: false,
   });
   const [touchStart, setTouchStart] = useState<{ y: number; scrollTop: number } | null>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
 
   const loadQuickView = async () => {
     setQuickViewLoading(true);
@@ -132,71 +133,81 @@ export function Home({ onQuickRecommendation, weatherOverride }: HomeProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [weatherOverride]);
 
-  // Pull-to-refresh handlers
-  const handleTouchStart = (e: React.TouchEvent) => {
-    // Only start pull-to-refresh if at the top of the page
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    
-    if (scrollTop === 0) {
-      setTouchStart({
-        y: e.touches[0].clientY,
-        scrollTop: scrollTop,
-      });
-    }
-  };
+  // Set up touch event listeners with passive: false
+  useEffect(() => {
+    const element = pageRef.current;
+    if (!element) return;
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchStart) return;
-    
-    const currentY = e.touches[0].clientY;
-    const pullDistance = Math.max(0, currentY - touchStart.y);
-    
-    // Only allow pull-to-refresh if pulling down
-    if (pullDistance > 0) {
-      setPullToRefresh({
-        isPulling: true,
-        pullDistance: Math.min(pullDistance, 80), // Max pull distance
-        isRefreshing: false,
-      });
+    const handleTouchStart = (e: TouchEvent) => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       
-      // Prevent default scrolling when pulling
-      if (pullDistance > 10) {
-        e.preventDefault();
+      if (scrollTop === 0) {
+        setTouchStart({
+          y: e.touches[0].clientY,
+          scrollTop: scrollTop,
+        });
       }
-    }
-  };
+    };
 
-  const handleTouchEnd = () => {
-    if (!touchStart) return;
-    
-    if (pullToRefresh.pullDistance > 50) {
-      // Trigger refresh
-      setPullToRefresh({
-        isPulling: true,
-        pullDistance: 60,
-        isRefreshing: true,
-      });
-      loadQuickView();
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!touchStart) return;
       
-      // Reset after animation
-      setTimeout(() => {
+      const currentY = e.touches[0].clientY;
+      const pullDistance = Math.max(0, currentY - touchStart.y);
+      
+      if (pullDistance > 0) {
+        setPullToRefresh({
+          isPulling: true,
+          pullDistance: Math.min(pullDistance, 80),
+          isRefreshing: false,
+        });
+        
+        if (pullDistance > 10) {
+          e.preventDefault();
+        }
+      }
+    };
+
+    const handleTouchEnd = () => {
+      if (!touchStart) return;
+      
+      if (pullToRefresh.pullDistance > 50) {
+        setPullToRefresh({
+          isPulling: true,
+          pullDistance: 60,
+          isRefreshing: true,
+        });
+        loadQuickView();
+        
+        setTimeout(() => {
+          setPullToRefresh({
+            isPulling: false,
+            pullDistance: 0,
+            isRefreshing: false,
+          });
+        }, 800);
+      } else {
         setPullToRefresh({
           isPulling: false,
           pullDistance: 0,
           isRefreshing: false,
         });
-      }, 800);
-    } else {
-      // Reset without refreshing
-      setPullToRefresh({
-        isPulling: false,
-        pullDistance: 0,
-        isRefreshing: false,
-      });
-    }
-    
-    setTouchStart(null);
-  };
+      }
+      
+      setTouchStart(null);
+    };
+
+    element.addEventListener('touchstart', handleTouchStart, { passive: true });
+    element.addEventListener('touchmove', handleTouchMove, { passive: false });
+    element.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      element.removeEventListener('touchstart', handleTouchStart);
+      element.removeEventListener('touchmove', handleTouchMove);
+      element.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [touchStart, pullToRefresh.pullDistance]);
+
 
 
   const isMetric = quickViewData?.config.units === 'metric';
@@ -228,10 +239,8 @@ export function Home({ onQuickRecommendation, weatherOverride }: HomeProps) {
 
   return (
     <div 
+      ref={pageRef}
       className="page home"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
       style={{
         transform: pullToRefresh.isPulling ? `translateY(${Math.min(pullToRefresh.pullDistance, 80)}px)` : 'translateY(0)',
         transition: pullToRefresh.isPulling ? 'none' : 'transform 0.3s ease-out',
