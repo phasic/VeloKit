@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { RideConfig, Location } from '../types';
 import { storage } from '../utils/storage';
 import { geocodeCity } from '../services/weatherService';
@@ -17,13 +17,8 @@ export function RideSetup({ onContinue }: RideSetupProps) {
     return now.toISOString().slice(0, 16);
   });
   const [durationHours, setDurationHours] = useState(2);
-  const [units, setUnits] = useState<'metric' | 'imperial'>(() => storage.getUnits());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    storage.setUnits(units);
-  }, [units]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +55,7 @@ export function RideSetup({ onContinue }: RideSetupProps) {
       const config: RideConfig = {
         startTime: start,
         durationHours,
-        units,
+        units: storage.getUnits(), // Use units from settings
       };
 
       onContinue(location, config);
@@ -134,18 +129,6 @@ export function RideSetup({ onContinue }: RideSetupProps) {
             onChange={(e) => setDurationHours(parseFloat(e.target.value))}
             required
           />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="units">Units</label>
-          <select
-            id="units"
-            value={units}
-            onChange={(e) => setUnits(e.target.value as 'metric' | 'imperial')}
-          >
-            <option value="metric">°C / km/h</option>
-            <option value="imperial">°F / mph</option>
-          </select>
         </div>
 
         {error && <div className="error">{error}</div>}

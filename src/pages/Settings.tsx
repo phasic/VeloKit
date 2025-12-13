@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { storage } from '../utils/storage';
+import { isAppInstalled } from '../components/InstallPrompt';
 
 interface SettingsProps {
   onBack: () => void;
   onAbout: () => void;
+  onShowInstallPrompt?: (show: boolean) => void;
 }
 
-export function Settings({ onBack, onAbout }: SettingsProps) {
+export function Settings({ onBack, onAbout, onShowInstallPrompt }: SettingsProps) {
   const [apiKey, setApiKey] = useState(() => storage.getApiKey() || '');
   const [units, setUnits] = useState<'metric' | 'imperial'>(() => storage.getUnits());
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => storage.getTheme());
@@ -14,6 +16,7 @@ export function Settings({ onBack, onAbout }: SettingsProps) {
   const [defaultDuration, setDefaultDuration] = useState(() => storage.getDefaultDuration());
   const [demoMode, setDemoMode] = useState(() => storage.getDemoMode());
   const [disableInstallPrompt, setDisableInstallPrompt] = useState(() => storage.getDisableInstallPrompt());
+  const [isInstalled, setIsInstalled] = useState(false);
   const [saved, setSaved] = useState(false);
   const [savedMessage, setSavedMessage] = useState<string>('');
   const [showClearCacheConfirm, setShowClearCacheConfirm] = useState(false);
@@ -42,6 +45,10 @@ export function Settings({ onBack, onAbout }: SettingsProps) {
   useEffect(() => {
     storage.setDisableInstallPrompt(disableInstallPrompt);
   }, [disableInstallPrompt]);
+
+  useEffect(() => {
+    setIsInstalled(isAppInstalled());
+  }, []);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,9 +207,29 @@ export function Settings({ onBack, onAbout }: SettingsProps) {
               )}
             </div>
 
+            {!isInstalled && (
+              <div className="form-group">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    if (onShowInstallPrompt) {
+                      onShowInstallPrompt(true);
+                    }
+                  }}
+                  style={{ width: '100%', marginBottom: '0.5rem' }}
+                >
+                  Install App
+                </button>
+                <small style={{ display: 'block', marginTop: '0.5rem', marginBottom: '1rem' }}>
+                  The app will be installed as a Progressive Web App (PWA) on your device
+                </small>
+              </div>
+            )}
+
             <div className="form-group">
               <div className="toggle-container">
-                <label htmlFor="disableInstallPrompt" className="toggle-label">Disable Install Prompt</label>
+                <label htmlFor="disableInstallPrompt" className="toggle-label">Disable Weekly Reminder Install Prompt</label>
                 <label className="toggle-switch">
                   <input
                     id="disableInstallPrompt"
@@ -213,7 +240,7 @@ export function Settings({ onBack, onAbout }: SettingsProps) {
                   <span className="toggle-slider"></span>
                 </label>
               </div>
-              <small>Never show the install prompt to add this app to your home screen</small>
+              <small>Never show the weekly reminder install prompt to add this app to your home screen</small>
             </div>
 
         {saved && <div className="success">{savedMessage}</div>}

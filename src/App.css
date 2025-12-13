@@ -1062,7 +1062,7 @@ main {
 }
 
 .ios-tab-item.active img.ios-tab-icon {
-  filter: brightness(0) saturate(100%) invert(27%) sepia(95%) saturate(7482%) hue-rotate(212deg) brightness(110%) contrast(101%);
+  filter: brightness(0) saturate(100%) invert(27%) sepia(95%) saturate(7482%) hue-rotate(212deg) brightness(120%) contrast(101%);
   opacity: 1;
 }
 
@@ -1071,7 +1071,7 @@ main {
 }
 
 :root.dark .ios-tab-item.active img.ios-tab-icon {
-  filter: brightness(0) saturate(100%) invert(40%) sepia(95%) saturate(7482%) hue-rotate(212deg) brightness(130%) contrast(101%);
+  filter: brightness(0) saturate(100%) invert(40%) sepia(95%) saturate(7482%) hue-rotate(212deg) brightness(140%) contrast(101%);
   opacity: 1;
 }
 
@@ -1081,7 +1081,7 @@ main {
   }
 
   :root:not(.light) .ios-tab-item.active img.ios-tab-icon {
-    filter: brightness(0) saturate(100%) invert(40%) sepia(95%) saturate(7482%) hue-rotate(212deg) brightness(130%) contrast(101%);
+    filter: brightness(0) saturate(100%) invert(40%) sepia(95%) saturate(7482%) hue-rotate(212deg) brightness(140%) contrast(101%);
     opacity: 1;
   }
 }
