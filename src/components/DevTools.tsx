@@ -189,6 +189,19 @@ export function DevTools({ onWeatherOverride }: DevToolsProps) {
                 Show Welcome Screen
               </button>
               <p className="dev-tools-hint">Resets the welcome screen flag and reloads the page</p>
+              
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => {
+                  const forceShow = storage.getForceInstallPrompt();
+                  storage.setForceInstallPrompt(!forceShow);
+                  window.location.reload();
+                }}
+                style={{ marginTop: '0.5rem' }}
+              >
+                {storage.getForceInstallPrompt() ? 'Hide Install Prompt' : 'Show Install Prompt'}
+              </button>
+              <p className="dev-tools-hint">Toggles the PWA install prompt for testing and reloads the page</p>
             </div>
           </div>
         </div>

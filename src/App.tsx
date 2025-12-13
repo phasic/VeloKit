@@ -9,6 +9,7 @@ import { About } from './pages/About';
 import { Welcome } from './pages/Welcome';
 import { DevTools } from './components/DevTools';
 import { BottomTabBar } from './components/BottomTabBar';
+import { InstallPrompt } from './components/InstallPrompt';
 import { fetchWeatherForecast } from './services/weatherService';
 import { recommendClothing } from './logic/clothingEngine';
 import { storage } from './utils/storage';
@@ -201,6 +202,8 @@ function App() {
               customLoading={loading && page === 'setup'}
             />
           )}
+
+          {page !== 'welcome' && <InstallPrompt />}
         </div>
       );
     }

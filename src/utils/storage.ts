@@ -11,6 +11,8 @@ const STORAGE_KEYS = {
   DEFAULT_DURATION: 'dressmyride_default_duration',
   DEMO_MODE: 'dressmyride_demo_mode',
   WELCOME_SEEN: 'dressmyride_welcome_seen',
+  INSTALL_PROMPT_DISMISSED: 'dressmyride_install_prompt_dismissed',
+  FORCE_INSTALL_PROMPT: 'dressmyride_force_install_prompt',
 } as const;
 
 export const storage = {
@@ -205,6 +207,23 @@ export const storage = {
 
       setWelcomeSeen: (seen: boolean): void => {
         localStorage.setItem(STORAGE_KEYS.WELCOME_SEEN, seen ? 'true' : 'false');
+      },
+
+      getInstallPromptDismissed: (): number | null => {
+        const value = localStorage.getItem(STORAGE_KEYS.INSTALL_PROMPT_DISMISSED);
+        return value ? parseInt(value, 10) : null;
+      },
+
+      setInstallPromptDismissed: (timestamp: number): void => {
+        localStorage.setItem(STORAGE_KEYS.INSTALL_PROMPT_DISMISSED, timestamp.toString());
+      },
+
+      getForceInstallPrompt: (): boolean => {
+        return localStorage.getItem(STORAGE_KEYS.FORCE_INSTALL_PROMPT) === 'true';
+      },
+
+      setForceInstallPrompt: (enabled: boolean): void => {
+        localStorage.setItem(STORAGE_KEYS.FORCE_INSTALL_PROMPT, enabled ? 'true' : 'false');
       },
     };
 
