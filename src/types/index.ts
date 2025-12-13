@@ -52,5 +52,5 @@ export interface Location {
   city?: string;
 }
 
-export type Page = 'home' | 'setup' | 'recommendation' | 'settings' | 'manual' | 'guide';
+export type Page = 'home' | 'setup' | 'recommendation' | 'settings' | 'manual' | 'guide' | 'about';
 

@@ -4,22 +4,24 @@ import { WeatherSummary, RideConfig } from '../types';
 import './ClothingGuide.css';
 
 interface GuideProps {
-  onBack: () => void;
+  onBack?: () => void;
 }
 
 export function ClothingGuide({ onBack }: GuideProps) {
   const [units, setUnits] = useState<'metric' | 'imperial'>('metric');
   const [openSections, setOpenSections] = useState<{
+    uniqueItems: boolean;
     temperature: boolean;
     wind: boolean;
     rain: boolean;
   }>({
+    uniqueItems: false,
     temperature: false,
     wind: false,
     rain: false,
   });
 
-  const toggleSection = (section: 'temperature' | 'wind' | 'rain') => {
+  const toggleSection = (section: 'uniqueItems' | 'temperature' | 'wind' | 'rain') => {
     setOpenSections(prev => ({
       ...prev,
       [section]: !prev[section],
@@ -196,11 +198,169 @@ export function ClothingGuide({ onBack }: GuideProps) {
     return scenarios;
   };
 
-  const tempScenarios = useMemo(() => generateTemperatureScenarios(), []);
-  const windScenarios = useMemo(() => generateWindScenarios(), []);
-  const rainScenarios = useMemo(() => generateRainScenarios(), []);
+  const tempScenarios = useMemo(() => generateTemperatureScenarios(), [units]);
+  const windScenarios = useMemo(() => generateWindScenarios(), [units]);
+  const rainScenarios = useMemo(() => generateRainScenarios(), [units]);
   const tempUnit = units === 'metric' ? '°C' : '°F';
   const windUnit = units === 'metric' ? 'km/h' : 'mph';
+
+  // Helper function to get item type and temperature order
+  const getItemOrder = (item: string): { type: 'temp' | 'wind' | 'rain', order: number } => {
+    const itemLower = item.toLowerCase();
+    
+    // Wind-related items
+    if (itemLower.includes('wind') || itemLower.includes('vest')) {
+      return { type: 'wind', order: 1000 };
+    }
+
+    // Rain-related items
+    if (itemLower.includes('rain') || itemLower.includes('waterproof')) {
+      return { type: 'rain', order: 2000 };
+    }
+
+    // Temperature-related items - order by when they first appear (hot to cold)
+    // Order based on temperature thresholds: >21, >15, >10, >7, >4, >1, >-1, >-4, <=-4
+    const tempOrderMap: { [key: string]: number } = {
+      // Hot (>21C)
+      'short-sleeve jersey': 1,
+      'shorts': 2,
+      // Warm (>15C)
+      'long-sleeve jersey': 10,
+      // Cool (>10C)
+      'heavy long-sleeve jersey': 20,
+      'lightweight long-sleeve jersey': 21,
+      'tights or leg warmers': 22,
+      'sleeveless or short-sleeve wicking undershirt': 23,
+      'long-sleeve undershirt': 24,
+      // Cold (>7C)
+      'headband covering ears': 30,
+      'long-sleeve wicking undershirt': 31,
+      'lined cycling jacket': 32,
+      'thin full-fingered gloves': 33,
+      'wool socks': 34,
+      'shoe covers': 35,
+      // Very cold (>4C)
+      'long-sleeve heavy mock turtleneck undershirt': 40,
+      'medium-weight gloves': 41,
+      'winter cycling shoes': 42,
+      // Freezing (>1C)
+      'long-sleeve heavy wicking turtleneck undershirt': 50,
+      'heavy cycling jacket': 51,
+      'heavyweight tights': 52,
+      'heavy-weight gloves': 53,
+      'wool socks with charcoal toe warmers': 54,
+      // Below freezing (>-1C)
+      'lined skullcap': 60,
+      // Extreme cold (>-4C)
+      'balaclava': 70,
+      'long-sleeve heavy wicking full turtleneck undershirt': 71,
+      'winter bib tights': 72,
+      'mittens or lobster claw gloves': 73,
+      'plastic bag': 74,
+      'charcoal toe warmers': 75,
+    };
+
+    // Find matching order
+    for (const [key, order] of Object.entries(tempOrderMap)) {
+      if (itemLower.includes(key.toLowerCase())) {
+        return { type: 'temp', order };
+      }
+    }
+
+    // Default temperature item (fallback)
+    return { type: 'temp', order: 500 };
+  };
+
+  // Sort items: temperature (hot to cold), then wind, then rain
+  const sortItems = (items: string[]): string[] => {
+    return items.sort((a, b) => {
+      const aOrder = getItemOrder(a);
+      const bOrder = getItemOrder(b);
+      
+      // First sort by type: temp < wind < rain
+      if (aOrder.type !== bOrder.type) {
+        const typeOrder = { temp: 0, wind: 1, rain: 2 };
+        return typeOrder[aOrder.type] - typeOrder[bOrder.type];
+      }
+      
+      // Then sort by order within same type
+      return aOrder.order - bOrder.order;
+    });
+  };
+
+  // Collect all unique clothing items from all scenarios
+  const allUniqueItems = useMemo(() => {
+    const items = {
+      head: new Set<string>(),
+      neckFace: new Set<string>(),
+      chest: new Set<string>(),
+      legs: new Set<string>(),
+      hands: new Set<string>(),
+      feet: new Set<string>(),
+    };
+
+    // Collect from temperature scenarios
+    tempScenarios.forEach(scenario => {
+      const rec = recommendClothing(scenario.weather, scenario.config);
+      rec.head.forEach(item => items.head.add(item));
+      rec.neckFace.forEach(item => items.neckFace.add(item));
+      rec.chest.forEach(item => items.chest.add(item));
+      rec.legs.forEach(item => items.legs.add(item));
+      rec.hands.forEach(item => items.hands.add(item));
+      rec.feet.forEach(item => items.feet.add(item));
+    });
+
+    // Collect from wind scenarios
+    windScenarios.forEach(scenario => {
+      const rec = recommendClothing(scenario.weather, scenario.config);
+      rec.head.forEach(item => items.head.add(item));
+      rec.neckFace.forEach(item => items.neckFace.add(item));
+      rec.chest.forEach(item => items.chest.add(item));
+      rec.legs.forEach(item => items.legs.add(item));
+      rec.hands.forEach(item => items.hands.add(item));
+      rec.feet.forEach(item => items.feet.add(item));
+    });
+
+    // Collect from rain scenarios
+    rainScenarios.forEach(scenario => {
+      const rec = recommendClothing(scenario.weather, scenario.config);
+      rec.head.forEach(item => items.head.add(item));
+      rec.neckFace.forEach(item => items.neckFace.add(item));
+      rec.chest.forEach(item => items.chest.add(item));
+      rec.legs.forEach(item => items.legs.add(item));
+      rec.hands.forEach(item => items.hands.add(item));
+      rec.feet.forEach(item => items.feet.add(item));
+    });
+
+    const sortedItems = {
+      head: sortItems(Array.from(items.head)),
+      neckFace: sortItems(Array.from(items.neckFace)),
+      chest: sortItems(Array.from(items.chest)),
+      legs: sortItems(Array.from(items.legs)),
+      hands: sortItems(Array.from(items.hands)),
+      feet: sortItems(Array.from(items.feet)),
+    };
+
+    return sortedItems;
+  }, [tempScenarios, windScenarios, rainScenarios]);
+
+  // Helper function to determine emoji for clothing items
+  const getItemEmoji = (item: string): string => {
+    const itemLower = item.toLowerCase();
+    
+    // Wind-related items
+    if (itemLower.includes('wind') || itemLower.includes('vest')) {
+      return '💨'; // Wind emoji
+    }
+
+    // Rain-related items
+    if (itemLower.includes('rain') || itemLower.includes('waterproof')) {
+      return '🌧️'; // Rain emoji
+    }
+
+    // Everything else is temperature-related
+    return '🌡️'; // Temperature gauge emoji
+  };
 
   const formatTemp = (temp: number) => {
     const displayTemp = units === 'metric' ? temp : (temp * 9/5) + 32;
@@ -224,7 +384,7 @@ export function ClothingGuide({ onBack }: GuideProps) {
   return (
     <div className="page clothing-guide">
       <div className="guide-header">
-        <h2>Clothing Guide</h2>
+        <h2>Wardrobe</h2>
         <div className="guide-controls">
           <label>
             Units:
@@ -239,6 +399,106 @@ export function ClothingGuide({ onBack }: GuideProps) {
       <p className="guide-intro">
         Complete overview of clothing recommendations organized by temperature, wind, and rain conditions.
       </p>
+
+      {/* All Clothing Items Section */}
+      <div className="guide-section">
+        <div 
+          className="section-header clickable"
+          onClick={() => toggleSection('uniqueItems')}
+        >
+          <h3 className="section-title">All Clothing Items</h3>
+          <span className="section-toggle">
+            {openSections.uniqueItems ? '▼' : '▶'}
+          </span>
+        </div>
+        {openSections.uniqueItems && (
+          <div className="quick-clothing">
+            {allUniqueItems.head.length > 0 && (
+              <div className="quick-kit">
+                <h3>Head</h3>
+                <ul>
+                  {allUniqueItems.head.map((item, idx) => (
+                    <li key={idx}>
+                      <span className="item-emoji">{getItemEmoji(item)}</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {allUniqueItems.neckFace.length > 0 && (
+              <div className="quick-kit">
+                <h3>Neck / Face</h3>
+                <ul>
+                  {allUniqueItems.neckFace.map((item, idx) => (
+                    <li key={idx}>
+                      <span className="item-emoji">{getItemEmoji(item)}</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {allUniqueItems.chest.length > 0 && (
+              <div className="quick-kit">
+                <h3>Chest</h3>
+                <ul>
+                  {allUniqueItems.chest.map((item, idx) => (
+                    <li key={idx}>
+                      <span className="item-emoji">{getItemEmoji(item)}</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {allUniqueItems.legs.length > 0 && (
+              <div className="quick-kit">
+                <h3>Legs</h3>
+                <ul>
+                  {allUniqueItems.legs.map((item, idx) => (
+                    <li key={idx}>
+                      <span className="item-emoji">{getItemEmoji(item)}</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {allUniqueItems.hands.length > 0 && (
+              <div className="quick-kit">
+                <h3>Hands</h3>
+                <ul>
+                  {allUniqueItems.hands.map((item, idx) => (
+                    <li key={idx}>
+                      <span className="item-emoji">{getItemEmoji(item)}</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {allUniqueItems.feet.length > 0 && (
+              <div className="quick-kit">
+                <h3>Feet</h3>
+                <ul>
+                  {allUniqueItems.feet.map((item, idx) => (
+                    <li key={idx}>
+                      <span className="item-emoji">{getItemEmoji(item)}</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Temperature Section */}
       <div className="guide-section">
@@ -425,9 +685,6 @@ export function ClothingGuide({ onBack }: GuideProps) {
         )}
       </div>
 
-      <button className="btn btn-primary" onClick={onBack}>
-        Back
-      </button>
     </div>
   );
 }

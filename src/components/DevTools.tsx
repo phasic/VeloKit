@@ -61,12 +61,12 @@ export function DevTools({ onWeatherOverride }: DevToolsProps) {
   return (
     <>
       <button
-        className="dev-tools-fab"
+        className="btn-icon dev-tools-btn"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Dev Tools"
         title="Dev Tools"
       >
-        {isOpen ? '✕' : '⚙️'}
+        {isOpen ? '✕' : '🔧'}
       </button>
 
       {isOpen && (

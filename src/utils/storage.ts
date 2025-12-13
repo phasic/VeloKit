@@ -6,6 +6,8 @@ const STORAGE_KEYS = {
   UNITS: 'dressmyride_units',
   QUICK_VIEW: 'dressmyride_quick_view',
   THEME: 'dressmyride_theme',
+  DATE_FORMAT: 'dressmyride_date_format',
+  DEFAULT_DURATION: 'dressmyride_default_duration',
 } as const;
 
 export const storage = {
@@ -70,6 +72,25 @@ export const storage = {
 
       setTheme: (theme: 'light' | 'dark' | 'system'): void => {
         localStorage.setItem(STORAGE_KEYS.THEME, theme);
+      },
+
+      getDateFormat: (): 'custom' | 'system' => {
+        const format = localStorage.getItem(STORAGE_KEYS.DATE_FORMAT);
+        return (format === 'custom' || format === 'system' ? format : 'system') as 'custom' | 'system';
+      },
+
+      setDateFormat: (format: 'custom' | 'system'): void => {
+        localStorage.setItem(STORAGE_KEYS.DATE_FORMAT, format);
+      },
+
+      getDefaultDuration: (): number => {
+        const duration = localStorage.getItem(STORAGE_KEYS.DEFAULT_DURATION);
+        const parsed = duration ? parseFloat(duration) : 2;
+        return isNaN(parsed) || parsed <= 0 ? 2 : parsed;
+      },
+
+      setDefaultDuration: (duration: number): void => {
+        localStorage.setItem(STORAGE_KEYS.DEFAULT_DURATION, duration.toString());
       },
     };
 

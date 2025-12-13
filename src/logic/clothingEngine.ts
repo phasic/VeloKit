@@ -62,7 +62,7 @@ export function recommendClothing(
     feet.push('Winter cycling shoes');
     feet.push('Shoe covers');
     feet.push('Wool socks with charcoal toe warmers');
-    explanation.push('Freezing conditions - maximum protection needed');
+    explanation.push('Very cold conditions - near freezing, maximum protection needed');
   } else if (temp > -1) {
     head.push('Lined skullcap');
     chest.push('Long-sleeve heavy wicking turtleneck undershirt');

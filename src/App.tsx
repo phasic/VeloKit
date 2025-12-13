@@ -4,9 +4,10 @@ import { Home } from './pages/Home';
 import { RideSetup } from './pages/RideSetup';
 import { Recommendation } from './pages/Recommendation';
 import { Settings } from './pages/Settings';
-import { ManualLocation } from './pages/ManualLocation';
 import { ClothingGuide } from './pages/ClothingGuide';
+import { About } from './pages/About';
 import { DevTools } from './components/DevTools';
+import { BottomTabBar } from './components/BottomTabBar';
 import { fetchWeatherForecast } from './services/weatherService';
 import { recommendClothing } from './logic/clothingEngine';
 import { storage } from './utils/storage';
@@ -48,37 +49,31 @@ function App() {
     }
   }, []);
 
-  const handleLocationFound = (loc: Location) => {
+  const handleRideConfig = async (loc: Location, rideConfig: RideConfig) => {
+    setLoading(true);
+    setError(null);
     setLocation(loc);
-    setPage('setup');
+    setConfig(rideConfig);
+
+    try {
+      let weatherData = await fetchWeatherForecast(loc, rideConfig);
+      
+      // Apply weather override if in dev mode
+      if (weatherOverride) {
+        weatherData = { ...weatherData, ...weatherOverride };
+      }
+      
+      const clothingRec = recommendClothing(weatherData, rideConfig);
+
+      setWeather(weatherData);
+      setRecommendation(clothingRec);
+      setPage('recommendation');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch weather data');
+    } finally {
+      setLoading(false);
+    }
   };
-
-      const handleRideConfig = async (rideConfig: RideConfig) => {
-        if (!location) return;
-
-        setLoading(true);
-        setError(null);
-        setConfig(rideConfig);
-
-        try {
-          let weatherData = await fetchWeatherForecast(location, rideConfig);
-          
-          // Apply weather override if in dev mode
-          if (weatherOverride) {
-            weatherData = { ...weatherData, ...weatherOverride };
-          }
-          
-          const clothingRec = recommendClothing(weatherData, rideConfig);
-
-          setWeather(weatherData);
-          setRecommendation(clothingRec);
-          setPage('recommendation');
-        } catch (err) {
-          setError(err instanceof Error ? err.message : 'Failed to fetch weather data');
-        } finally {
-          setLoading(false);
-        }
-      };
 
   const handleNewRecommendation = () => {
     setPage('home');
@@ -97,20 +92,17 @@ function App() {
           <h1>DressMyRide</h1>
         </div>
         <div className="header-actions">
-          <button
-            className="btn-icon"
-            onClick={() => setPage(page === 'guide' ? 'home' : 'guide')}
-            aria-label="Clothing Guide"
-            title="Clothing Guide"
-          >
-            📖
-          </button>
+          <DevTools onWeatherOverride={setWeatherOverride} />
           <button
             className="btn-icon"
             onClick={() => setPage(page === 'settings' ? 'home' : 'settings')}
             aria-label="Settings"
           >
-            ⚙️
+            <img
+              src={`${import.meta.env.BASE_URL}settings.png`}
+              alt="Settings"
+              className="settings-icon"
+            />
           </button>
         </div>
       </header>
@@ -132,8 +124,8 @@ function App() {
 
             {!loading && page === 'home' && (
               <Home
-                onLocationFound={handleLocationFound}
-                onManualInput={() => setPage('manual')}
+                onLocationFound={() => setPage('setup')}
+                onManualInput={() => setPage('setup')}
                 onQuickRecommendation={(loc, weather, rec, cfg) => {
                   setLocation(loc);
                   setWeather(weather);
@@ -144,39 +136,47 @@ function App() {
               />
             )}
 
-        {!loading && page === 'manual' && (
-          <ManualLocation
-            onLocationFound={handleLocationFound}
-            onBack={() => setPage('home')}
-          />
-        )}
-
         {!loading && page === 'setup' && (
           <RideSetup
             onContinue={handleRideConfig}
-            onBack={() => setPage('home')}
           />
         )}
 
-        {!loading && page === 'recommendation' && weather && recommendation && config && (
+        {!loading && page === 'recommendation' && weather && recommendation && config && location && (
           <Recommendation
             recommendation={recommendation}
             weather={weather}
             config={config}
+            location={location}
             onBack={handleNewRecommendation}
           />
         )}
 
         {!loading && page === 'settings' && (
-          <Settings onBack={() => setPage('home')} />
+          <Settings 
+            onBack={() => setPage('home')} 
+            onAbout={() => setPage('about')}
+          />
+        )}
+
+        {!loading && page === 'about' && (
+          <About onBack={() => setPage('settings')} />
         )}
 
             {!loading && page === 'guide' && (
-              <ClothingGuide onBack={() => setPage('home')} />
+              <ClothingGuide />
             )}
           </main>
 
-          <DevTools onWeatherOverride={setWeatherOverride} />
+          {(page === 'home' || page === 'setup' || page === 'guide' || page === 'recommendation') && (
+            <BottomTabBar
+              currentPage={page}
+              onHome={() => setPage('home')}
+              onCustom={() => setPage('setup')}
+              onGuide={() => setPage('guide')}
+              customLoading={loading && page === 'setup'}
+            />
+          )}
         </div>
       );
     }

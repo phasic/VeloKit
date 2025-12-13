@@ -3,6 +3,7 @@ import { Location, RideConfig, WeatherSummary, ClothingRecommendation } from '..
 import { storage } from '../utils/storage';
 import { fetchWeatherForecast } from '../services/weatherService';
 import { recommendClothing } from '../logic/clothingEngine';
+import { formatDateTime } from '../utils/dateFormat';
 
 interface HomeProps {
   onLocationFound: (location: Location) => void;
@@ -23,6 +24,7 @@ export function Home({ onLocationFound, onManualInput, onQuickRecommendation, we
     weather: WeatherSummary;
     recommendation: ClothingRecommendation;
     config: RideConfig;
+    location: Location;
   } | null>(null);
   const [quickViewLoading, setQuickViewLoading] = useState(false);
 
@@ -46,7 +48,7 @@ export function Home({ onLocationFound, onManualInput, onQuickRecommendation, we
 
           const config: RideConfig = {
             startTime: new Date(),
-            durationHours: 2,
+            durationHours: storage.getDefaultDuration(),
             units: storage.getUnits(),
           };
 
@@ -59,7 +61,7 @@ export function Home({ onLocationFound, onManualInput, onQuickRecommendation, we
           
           const recommendation = recommendClothing(weather, config);
 
-          setQuickViewData({ weather, recommendation, config });
+          setQuickViewData({ weather, recommendation, config, location });
           onQuickRecommendation(location, weather, recommendation, config);
           setError(null); // Clear any previous errors
         } catch (err) {
@@ -156,7 +158,22 @@ export function Home({ onLocationFound, onManualInput, onQuickRecommendation, we
       {quickViewData && !quickViewLoading && (
         <div className="quick-view">
           <div className="quick-view-header">
-            <h2>What to wear</h2>
+            <div>
+              <h2>What to wear</h2>
+              <button
+                className="refresh-btn"
+                onClick={loadQuickView}
+                disabled={quickViewLoading}
+                aria-label="Refresh"
+              >
+                <img 
+                  src={`${import.meta.env.BASE_URL}refresh.png`} 
+                  alt="Refresh" 
+                  className="refresh-btn-icon"
+                />
+                <span>Refresh</span>
+              </button>
+            </div>
             <div className="quick-weather-badge">
               {formatTemp(quickViewData.weather.minFeelsLike)}
             </div>
@@ -248,74 +265,66 @@ export function Home({ onLocationFound, onManualInput, onQuickRecommendation, we
             )}
           </div>
 
-          <div className="quick-weather-summary">
-            <div className="quick-weather-item">
-              <span>Temp:</span>
-              <span>
-                {formatTemp(quickViewData.weather.minTemp)} - {formatTemp(quickViewData.weather.maxTemp)}
-              </span>
-            </div>
-            <div className="quick-weather-item">
-              <span>Wind:</span>
-              <span>{formatWind(quickViewData.weather.maxWindSpeed)}</span>
-            </div>
-            <div className="quick-weather-item">
-              <span>Rain:</span>
-              <span>{Math.round(quickViewData.weather.maxRainProbability * 100)}%</span>
+          <div className="weather-summary">
+            <h3>Weather summary</h3>
+            <div className="weather-grid">
+              <div className="weather-item">
+                <span className="label">Temperature:</span>
+                <span className="value">
+                  {formatTemp(quickViewData.weather.minTemp)} - {formatTemp(quickViewData.weather.maxTemp)}
+                </span>
+              </div>
+              <div className="weather-item">
+                <span className="label">Feels like:</span>
+                <span className="value">{formatTemp(quickViewData.weather.minFeelsLike)}</span>
+              </div>
+              <div className="weather-item">
+                <span className="label">Wind speed:</span>
+                <span className="value">{formatWind(quickViewData.weather.maxWindSpeed)}</span>
+              </div>
+              <div className="weather-item">
+                <span className="label">Rain probability:</span>
+                <span className="value">{Math.round(quickViewData.weather.maxRainProbability * 100)}%</span>
+              </div>
             </div>
           </div>
 
-          <div className="quick-view-actions">
-            <button
-              className="btn btn-primary"
-              onClick={loadQuickView}
-              disabled={quickViewLoading}
-            >
-              {quickViewLoading ? 'Refreshing...' : '🔄 Refresh'}
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={handleUseLocation}
-              disabled={loading}
-            >
-              {loading ? 'Getting location...' : 'Custom ride'}
-            </button>
-            <button
-              className="btn btn-secondary"
-              onClick={onManualInput}
-              disabled={loading}
-            >
-              Enter city manually
-            </button>
+          <div className="weather-summary">
+            <h3>Ride details</h3>
+            <div className="weather-grid">
+              <div className="weather-item">
+                <span className="label">Date/Time:</span>
+                <span className="value">
+                  {formatDateTime(new Date(quickViewData.config.startTime), storage.getDateFormat())}
+                </span>
+              </div>
+              <div className="weather-item">
+                <span className="label">Duration:</span>
+                <span className="value">
+                  {quickViewData.config.durationHours} {quickViewData.config.durationHours === 1 ? 'hour' : 'hours'}
+                </span>
+              </div>
+              <div className="weather-item">
+                <span className="label">Location:</span>
+                <span className="value">
+                  {quickViewData.location.city || `${quickViewData.location.lat.toFixed(2)}, ${quickViewData.location.lon.toFixed(2)}`}
+                </span>
+              </div>
+            </div>
           </div>
+
+          <div className="explanation-section">
+            <h3>Why?</h3>
+            <ul>
+              {quickViewData.recommendation.explanation.map((reason, idx) => (
+                <li key={idx}>{reason}</li>
+              ))}
+            </ul>
+          </div>
+
         </div>
       )}
 
-      {!quickViewData && !quickViewLoading && (
-        <div className="quick-view-actions" style={{ marginTop: '2rem' }}>
-          <button
-            className="btn btn-primary"
-            onClick={loadQuickView}
-            disabled={quickViewLoading}
-          >
-            {quickViewLoading ? 'Loading...' : '🔄 Try quick view again'}
-          </button>
-          <button
-            className="btn btn-secondary"
-            onClick={handleUseLocation}
-            disabled={loading}
-          >
-            {loading ? 'Getting location...' : 'Custom ride'}
-          </button>
-          <button
-            className="btn btn-secondary"
-            onClick={onManualInput}
-            disabled={loading}
-          >
-            Enter city manually
-          </button>
-        </div>
-      )}
     </div>
   );
 }

@@ -49,6 +49,7 @@
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
   overflow: hidden;
+  background-color: var(--bg-color);
 }
 
 .section-header {
@@ -58,6 +59,7 @@
   padding: 1rem;
   background-color: var(--bg-color);
   border-bottom: 1px solid var(--border-color);
+  min-height: 3.5rem; /* Ensure consistent height */
 }
 
 .section-header.clickable {
@@ -73,13 +75,24 @@
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0;
+  padding: 0;
   color: var(--text-color);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  flex: 1;
 }
 
 .section-toggle {
   font-size: 1rem;
   color: var(--secondary-color);
   user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  line-height: 1rem;
 }
 
 .section-description {
@@ -226,6 +239,38 @@
   .guide-scenarios-wind,
   .guide-scenarios-rain {
     grid-template-columns: 1fr !important;
+  }
+}
+
+/* Remove background from quick-clothing when inside guide section */
+.clothing-guide .guide-section .quick-clothing {
+  background-color: var(--bg-color) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-radius: 0 !important;
+  padding: 1rem;
+  margin-bottom: 0;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+:root.dark .clothing-guide .guide-section .quick-clothing,
+:root.dark .guide-section .quick-clothing {
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) .clothing-guide .guide-section .quick-clothing,
+  :root:not(.light) .guide-section .quick-clothing {
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    border: none !important;
   }
 }
 

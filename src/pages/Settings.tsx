@@ -3,13 +3,18 @@ import { storage } from '../utils/storage';
 
 interface SettingsProps {
   onBack: () => void;
+  onAbout: () => void;
 }
 
-export function Settings({ onBack }: SettingsProps) {
+export function Settings({ onBack, onAbout }: SettingsProps) {
   const [apiKey, setApiKey] = useState(() => storage.getApiKey() || '');
   const [units, setUnits] = useState<'metric' | 'imperial'>(() => storage.getUnits());
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => storage.getTheme());
+  const [dateFormat, setDateFormat] = useState<'custom' | 'system'>(() => storage.getDateFormat());
+  const [defaultDuration, setDefaultDuration] = useState(() => storage.getDefaultDuration());
   const [saved, setSaved] = useState(false);
+  const [savedMessage, setSavedMessage] = useState<string>('');
+  const [showClearCacheConfirm, setShowClearCacheConfirm] = useState(false);
 
   useEffect(() => {
     storage.setUnits(units);
@@ -20,12 +25,23 @@ export function Settings({ onBack }: SettingsProps) {
     applyTheme(theme);
   }, [theme]);
 
+  useEffect(() => {
+    storage.setDateFormat(dateFormat);
+  }, [dateFormat]);
+
+  useEffect(() => {
+    storage.setDefaultDuration(defaultDuration);
+  }, [defaultDuration]);
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     storage.setApiKey(apiKey);
     storage.setUnits(units);
     storage.setTheme(theme);
+    storage.setDateFormat(dateFormat);
+    storage.setDefaultDuration(defaultDuration);
     applyTheme(theme);
+    setSavedMessage('Settings saved!');
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -43,6 +59,14 @@ export function Settings({ onBack }: SettingsProps) {
       root.classList.remove('dark', 'light');
       root.classList.add(selectedTheme);
     }
+  };
+
+  const handleClearCache = () => {
+    storage.clearWeatherCache();
+    setShowClearCacheConfirm(false);
+    setSavedMessage('Cache cleared!');
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   };
 
   return (
@@ -106,7 +130,49 @@ export function Settings({ onBack }: SettingsProps) {
               <small>Choose your preferred color theme</small>
             </div>
 
-        {saved && <div className="success">Settings saved!</div>}
+            <div className="form-group">
+              <label htmlFor="dateFormat">Date/Time Format</label>
+              <select
+                id="dateFormat"
+                value={dateFormat}
+                onChange={(e) => setDateFormat(e.target.value as 'custom' | 'system')}
+              >
+                <option value="system">System (e.g., Dec 15, 2:30 PM)</option>
+                <option value="custom">Custom (e.g., Saturday 13 Dec, 20:13)</option>
+              </select>
+              <small>Choose your preferred date and time format</small>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="defaultDuration">Default Riding Duration (hours)</label>
+              <input
+                id="defaultDuration"
+                type="number"
+                min="0.5"
+                max="24"
+                step="0.5"
+                value={defaultDuration}
+                onChange={(e) => setDefaultDuration(parseFloat(e.target.value) || 2)}
+              />
+              <small>Default duration for quick view rides (0.5 to 24 hours)</small>
+            </div>
+
+        {saved && <div className="success">{savedMessage}</div>}
+
+        <div className="settings-about-section">
+          <div className="settings-group-item" onClick={() => setShowClearCacheConfirm(true)}>
+            <span>Clear Weather Cache</span>
+            <span className="arrow">›</span>
+          </div>
+          <button
+            type="button"
+            className="settings-about-btn"
+            onClick={onAbout}
+          >
+            <span>About</span>
+            <span className="settings-about-arrow">›</span>
+          </button>
+        </div>
 
         <div className="form-actions">
           <button type="button" className="btn btn-secondary" onClick={onBack}>
@@ -117,6 +183,31 @@ export function Settings({ onBack }: SettingsProps) {
           </button>
         </div>
       </form>
+
+      {showClearCacheConfirm && (
+        <div className="modal-overlay" onClick={() => setShowClearCacheConfirm(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Clear Weather Cache?</h3>
+            <p>This will clear all cached weather data. The app will fetch fresh data on the next request.</p>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setShowClearCacheConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleClearCache}
+              >
+                Clear Cache
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
