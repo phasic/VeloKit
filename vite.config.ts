@@ -34,7 +34,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        navigateFallback: '/DressMyRide/offline.html',
+        navigateFallback: '/DressMyRide/index.html',
+        navigateFallbackDenylist: [/^\/DressMyRide\/docs/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.openweathermap\.org\/.*/i,
