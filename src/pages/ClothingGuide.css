@@ -340,3 +340,79 @@
   }
 }
 
+/* Radio button group - iOS style segmented control */
+.radio-button-group {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+  background-color: rgba(142, 142, 147, 0.12);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+:root.dark .radio-button-group {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) .radio-button-group {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.radio-button-option {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: transparent;
+  color: var(--text-color);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  font-family: inherit;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radio-button-option:hover {
+  background-color: rgba(142, 142, 147, 0.08);
+}
+
+:root.dark .radio-button-option:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) .radio-button-option:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.radio-button-option.selected {
+  background-color: var(--bg-color);
+  color: var(--primary-color);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+:root.dark .radio-button-option.selected {
+  background-color: rgba(28, 28, 30, 0.8);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) .radio-button-option.selected {
+    background-color: rgba(28, 28, 30, 0.8);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.radio-button-option:active {
+  transform: scale(0.98);
+}
+

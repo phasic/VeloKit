@@ -38,7 +38,7 @@ export function ClothingGuide({}: GuideProps) {
   const [showWardrobeSwitcher, setShowWardrobeSwitcher] = useState(false);
   const [switcherPosition, setSwitcherPosition] = useState<{ top: number; right: number } | null>(null);
   const [newWardrobeName, setNewWardrobeName] = useState('');
-  const [createFromScratch, setCreateFromScratch] = useState(false);
+  const [createFromScratch, setCreateFromScratch] = useState(true);
   const [baseWardrobeId, setBaseWardrobeId] = useState<string>('default');
   const [isEditMode, setIsEditMode] = useState(false);
   const [wardrobeSnapshot, setWardrobeSnapshot] = useState<WardrobeConfig[] | null>(null);
@@ -527,7 +527,7 @@ export function ClothingGuide({}: GuideProps) {
     storage.setSelectedWardrobeId(newWardrobe.id);
     setNewWardrobeName('');
     setShowCreateModal(false);
-    setCreateFromScratch(false);
+    setCreateFromScratch(true);
     setBaseWardrobeId('default');
   };
 
@@ -2991,7 +2991,12 @@ export function ClothingGuide({}: GuideProps) {
 
       {/* Create Wardrobe Modal */}
       {showCreateModal && (
-        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+        <div className="modal-overlay" onClick={() => {
+          setShowCreateModal(false);
+          setNewWardrobeName('');
+          setCreateFromScratch(true);
+          setBaseWardrobeId('default');
+        }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3>Create New Wardrobe</h3>
             <div className="form-group">
@@ -3006,22 +3011,23 @@ export function ClothingGuide({}: GuideProps) {
               />
             </div>
             <div className="form-group">
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '12px' }}>
-                <input
-                  type="radio"
-                  checked={createFromScratch}
-                  onChange={() => setCreateFromScratch(true)}
-                />
-                <span>Start from scratch</span>
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                <input
-                  type="radio"
-                  checked={!createFromScratch}
-                  onChange={() => setCreateFromScratch(false)}
-                />
-                <span>Base on existing wardrobe</span>
-              </label>
+              <label>Creation Method</label>
+              <div className="radio-button-group">
+                <button
+                  type="button"
+                  className={`radio-button-option ${createFromScratch ? 'selected' : ''}`}
+                  onClick={() => setCreateFromScratch(true)}
+                >
+                  Start from scratch
+                </button>
+                <button
+                  type="button"
+                  className={`radio-button-option ${!createFromScratch ? 'selected' : ''}`}
+                  onClick={() => setCreateFromScratch(false)}
+                >
+                  Base on existing
+                </button>
+              </div>
             </div>
             {!createFromScratch && (
               <div className="form-group">
@@ -3045,7 +3051,7 @@ export function ClothingGuide({}: GuideProps) {
                 onClick={() => {
                   setShowCreateModal(false);
                   setNewWardrobeName('');
-                  setCreateFromScratch(false);
+                  setCreateFromScratch(true);
                   setBaseWardrobeId('default');
                 }}
               >
@@ -3384,7 +3390,7 @@ export function ClothingGuide({}: GuideProps) {
       {showAddFirstClothingModal && (
         <div className="modal-overlay" onClick={() => setShowAddFirstClothingModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-            <h3>Add Your First Piece of Clothing</h3>
+            <h3>{isWardrobeEmpty ? 'Add Your First Piece of Clothing' : 'Add Clothing Item'}</h3>
             
             <div className="form-group">
               <label htmlFor="clothingName">Clothing Item Name</label>
@@ -3416,31 +3422,28 @@ export function ClothingGuide({}: GuideProps) {
 
             <div className="form-group">
               <label>Type</label>
-              <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    checked={newClothingType === 'temp'}
-                    onChange={() => setNewClothingType('temp')}
-                  />
-                  <span>Temperature</span>
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    checked={newClothingType === 'wind'}
-                    onChange={() => setNewClothingType('wind')}
-                  />
-                  <span>Wind</span>
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    checked={newClothingType === 'rain'}
-                    onChange={() => setNewClothingType('rain')}
-                  />
-                  <span>Rain</span>
-                </label>
+              <div className="radio-button-group">
+                <button
+                  type="button"
+                  className={`radio-button-option ${newClothingType === 'temp' ? 'selected' : ''}`}
+                  onClick={() => setNewClothingType('temp')}
+                >
+                  Temperature
+                </button>
+                <button
+                  type="button"
+                  className={`radio-button-option ${newClothingType === 'wind' ? 'selected' : ''}`}
+                  onClick={() => setNewClothingType('wind')}
+                >
+                  Wind
+                </button>
+                <button
+                  type="button"
+                  className={`radio-button-option ${newClothingType === 'rain' ? 'selected' : ''}`}
+                  onClick={() => setNewClothingType('rain')}
+                >
+                  Rain
+                </button>
               </div>
             </div>
 

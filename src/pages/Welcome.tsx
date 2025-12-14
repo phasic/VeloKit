@@ -61,6 +61,14 @@ export function Welcome({ onGetStarted, onTryDemo }: WelcomeProps) {
               <p>Set your ride time and duration for accurate recommendations</p>
             </div>
           </div>
+          
+          <div className="welcome-info-item">
+            <span className="welcome-info-icon">👕</span>
+            <div>
+              <strong>Customize & share</strong>
+              <p>Create custom wardrobes and share them with others</p>
+            </div>
+          </div>
         </div>
 
         <div className="welcome-actions">
