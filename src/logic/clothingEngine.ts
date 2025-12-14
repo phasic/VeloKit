@@ -1,4 +1,4 @@
-import { WeatherSummary, ClothingRecommendation, RideConfig } from '../types';
+import { WeatherSummary, ClothingRecommendation, RideConfig, WardrobeConfig } from '../types';
 import { storage } from '../utils/storage';
 import { getActiveWardrobe } from '../utils/wardrobeUtils';
 
@@ -45,10 +45,14 @@ interface ClothingConfig {
 }
 
 // Get the active wardrobe configuration
-function getClothingConfig(): ClothingConfig {
-  const wardrobes = storage.getWardrobes();
-  const selectedId = storage.getSelectedWardrobeId();
-  const activeWardrobe = getActiveWardrobe(wardrobes, selectedId);
+function getClothingConfig(wardrobeOverride?: WardrobeConfig): ClothingConfig {
+  // If a wardrobe is provided, use it directly (for React state updates)
+  // Otherwise, read from storage (for backward compatibility)
+  const activeWardrobe = wardrobeOverride || (() => {
+    const wardrobes = storage.getWardrobes();
+    const selectedId = storage.getSelectedWardrobeId();
+    return getActiveWardrobe(wardrobes, selectedId);
+  })();
   
   return {
     temperatureRanges: activeWardrobe.temperatureRanges,
@@ -86,7 +90,8 @@ function addItemsToCategory(
 
 export function recommendClothing(
   weather: WeatherSummary,
-  config: RideConfig
+  config: RideConfig,
+  wardrobeOverride?: WardrobeConfig
 ): ClothingRecommendation {
   const { minFeelsLike, maxWindSpeed, maxRainProbability, minTemp } = weather;
   const isMetric = config.units === 'metric';
@@ -105,7 +110,8 @@ export function recommendClothing(
   const explanation: string[] = [];
 
   // Get the active wardrobe configuration
-  const clothingConfig = getClothingConfig();
+  // Use wardrobeOverride if provided (for React state), otherwise read from storage
+  const clothingConfig = getClothingConfig(wardrobeOverride);
 
   // Find matching temperature range
   const tempRange = clothingConfig.temperatureRanges.find(range =>

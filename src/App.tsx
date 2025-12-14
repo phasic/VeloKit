@@ -8,7 +8,6 @@ import { ClothingGuide } from './pages/ClothingGuide';
 import { About } from './pages/About';
 import { Welcome } from './pages/Welcome';
 import { WardrobeManagement } from './pages/WardrobeManagement';
-import { getActiveWardrobe } from './utils/wardrobeUtils';
 import { BottomTabBar } from './components/BottomTabBar';
 import { InstallPrompt } from './components/InstallPrompt';
 import { fetchWeatherForecast } from './services/weatherService';
@@ -37,15 +36,14 @@ function App() {
   const [showFloatingActions, setShowFloatingActions] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [selectedWardrobeId, setSelectedWardrobeId] = useState<string | null>(() => storage.getSelectedWardrobeId());
-  const [wardrobes, setWardrobes] = useState(() => storage.getWardrobes());
   const [isEditMode, setIsEditMode] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   
-  // Get current wardrobe and check if it's the default wardrobe
-  // This uses the same logic as ClothingGuide and checks the wardrobe object's isDefault property
-  const currentWardrobe = getActiveWardrobe(wardrobes, selectedWardrobeId);
-  const isDefaultWardrobe = currentWardrobe.isDefault || !selectedWardrobeId || selectedWardrobeId === 'default';
+  // Check if default wardrobe is selected
+  // Only treat as default if selectedWardrobeId is null, 'default', or empty string
+  // Custom wardrobes will have a non-null, non-empty, non-'default' ID
+  const isDefaultWardrobe = !selectedWardrobeId || selectedWardrobeId === 'default' || selectedWardrobeId === '';
 
   // Handle scroll for floating actions visibility
   useEffect(() => {
@@ -100,13 +98,11 @@ function App() {
   useEffect(() => {
     const handleStorageChange = () => {
       setSelectedWardrobeId(storage.getSelectedWardrobeId());
-      setWardrobes(storage.getWardrobes());
     };
 
     // Check on page change to guide
     if (page === 'guide') {
       setSelectedWardrobeId(storage.getSelectedWardrobeId());
-      setWardrobes(storage.getWardrobes());
     }
 
     // Listen for custom events that might change wardrobe

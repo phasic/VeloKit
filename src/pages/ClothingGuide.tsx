@@ -214,12 +214,14 @@ export function ClothingGuide({}: GuideProps) {
           // Dispatch edit mode change to App component
           window.dispatchEvent(new CustomEvent('wardrobeEditModeChanged', { detail: newMode }));
           if (newMode) {
-            // Entering edit mode - save snapshot
-            setWardrobeSnapshot(JSON.parse(JSON.stringify(wardrobes))); // Deep clone
+            // Entering edit mode - save snapshot of current wardrobe state
+            // Deep clone to ensure we have an independent copy
+            const snapshot = JSON.parse(JSON.stringify(wardrobes));
+            setWardrobeSnapshot(snapshot);
           } else {
-            // Exiting edit mode - clear snapshot
-            setWardrobeSnapshot(null);
-            setEditingItem(null); // Close any open edit modals when exiting edit mode
+            // Exiting edit mode via toggle (shouldn't normally happen - use save/discard buttons instead)
+            // But if it does, don't clear snapshot here - let save/discard handlers do it
+            setEditingItem(null);
             setEditItemError('');
           }
           return newMode;
@@ -234,10 +236,12 @@ export function ClothingGuide({}: GuideProps) {
   // Listen for save/discard events from App component
   useEffect(() => {
     const handleSaveChanges = () => {
-      // Save all changes to storage
+      // Save all current changes to storage and exit edit mode
+      // The wardrobe state already has all the changes made during edit mode
       if (wardrobes) {
         storage.setWardrobes(wardrobes);
       }
+      // Clear snapshot and exit edit mode
       setIsEditMode(false);
       setWardrobeSnapshot(null);
       setEditingItem(null);
@@ -246,13 +250,15 @@ export function ClothingGuide({}: GuideProps) {
     };
 
     const handleDiscardChanges = () => {
-      // Restore wardrobe from snapshot to discard any unsaved changes
+      // Restore wardrobe from snapshot to discard all changes made during edit mode
       if (wardrobeSnapshot) {
-        setWardrobes(wardrobeSnapshot);
+        // Deep clone the snapshot to ensure we get a fresh reference
+        setWardrobes(JSON.parse(JSON.stringify(wardrobeSnapshot)));
       } else {
-        // Fallback: reload from storage if no snapshot
+        // Fallback: reload from storage if no snapshot (shouldn't happen)
         setWardrobes(storage.getWardrobes());
       }
+      // Clear snapshot and exit edit mode
       setIsEditMode(false);
       setWardrobeSnapshot(null);
       setEditingItem(null);
@@ -1080,25 +1086,32 @@ export function ClothingGuide({}: GuideProps) {
           
           // Remove item from old body part
           const oldBodyPartItems = r.items[oldBodyPart] || [];
-          newItems[oldBodyPart] = oldBodyPartItems.filter(item => {
+          newItems[oldBodyPart] = oldBodyPartItems.map(item => {
             if (typeof item === 'string') {
-              return item !== editingItem.item;
+              // Keep string items that don't match the item being edited
+              return item !== editingItem.item ? item : null;
             } else if (typeof item === 'object' && item !== null && 'options' in item) {
               // Filter out the item from options
               const filteredOptions = item.options.map(option => 
                 option.filter(opt => opt !== editingItem.item)
               ).filter(option => option.length > 0);
-              // Remove the entire option group if it becomes empty or no longer contains the item
-              return filteredOptions.length > 0 && item.options.some(option => option.includes(editingItem.item));
+              // Return the option group only if it still has options after filtering
+              if (filteredOptions.length > 0) {
+                return {
+                  options: filteredOptions
+                };
+              }
+              return null; // Mark for removal if empty
             }
-            return true;
-          });
+            return item;
+          }).filter((item): item is ClothingItem => item !== null);
           
           // If body part changed, add to new body part
           if (bodyPartChanged) {
-            const newBodyPartItems = r.items[newBodyPart] || [];
+            // Use items from newItems if already set, otherwise from original range
+            const existingNewBodyPartItems = newItems[newBodyPart] || r.items[newBodyPart] || [];
             // Check if item already exists in new body part
-            const itemExists = newBodyPartItems.some(item => {
+            const itemExists = existingNewBodyPartItems.some(item => {
               if (typeof item === 'string') return item === editItemName;
               if (typeof item === 'object' && item !== null && 'options' in item) {
                 return item.options.some(option => option.includes(editItemName));
@@ -1106,9 +1119,12 @@ export function ClothingGuide({}: GuideProps) {
               return false;
             });
             if (!itemExists) {
-              newItems[newBodyPart] = [...newBodyPartItems, editItemName];
+              newItems[newBodyPart] = [...existingNewBodyPartItems, editItemName];
             } else {
-              newItems[newBodyPart] = newBodyPartItems;
+              // Item already exists, ensure newItems[newBodyPart] is set
+              if (!newItems[newBodyPart]) {
+                newItems[newBodyPart] = existingNewBodyPartItems;
+              }
             }
           } else {
             // Same body part - update name if changed
@@ -1166,22 +1182,28 @@ export function ClothingGuide({}: GuideProps) {
           
           // Remove item from old body part
           const oldBodyPartItems = m.items[oldBodyPart] || [];
-          newItems[oldBodyPart] = oldBodyPartItems.filter(item => {
+          newItems[oldBodyPart] = oldBodyPartItems.map(item => {
             if (typeof item === 'string') {
-              return item !== editingItem.item;
+              return item !== editingItem.item ? item : null;
             } else if (typeof item === 'object' && item !== null && 'options' in item) {
               const filteredOptions = item.options.map(option => 
                 option.filter(opt => opt !== editingItem.item)
               ).filter(option => option.length > 0);
-              return filteredOptions.length > 0 && item.options.some(option => option.includes(editingItem.item));
+              if (filteredOptions.length > 0) {
+                return {
+                  options: filteredOptions
+                };
+              }
+              return null;
             }
-            return true;
-          });
+            return item;
+          }).filter((item): item is ClothingItem => item !== null);
           
           // If body part changed, add to new body part
           if (bodyPartChanged) {
-            const newBodyPartItems = m.items[newBodyPart] || [];
-            const itemExists = newBodyPartItems.some(item => {
+            // Use items from newItems if already set, otherwise from original modifier
+            const existingNewBodyPartItems = newItems[newBodyPart] || m.items[newBodyPart] || [];
+            const itemExists = existingNewBodyPartItems.some(item => {
               if (typeof item === 'string') return item === editItemName;
               if (typeof item === 'object' && item !== null && 'options' in item) {
                 return item.options.some(option => option.includes(editItemName));
@@ -1189,9 +1211,12 @@ export function ClothingGuide({}: GuideProps) {
               return false;
             });
             if (!itemExists) {
-              newItems[newBodyPart] = [...newBodyPartItems, editItemName];
+              newItems[newBodyPart] = [...existingNewBodyPartItems, editItemName];
             } else {
-              newItems[newBodyPart] = newBodyPartItems;
+              // Item already exists, ensure newItems[newBodyPart] is set
+              if (!newItems[newBodyPart]) {
+                newItems[newBodyPart] = existingNewBodyPartItems;
+              }
             }
           } else {
             // Same body part - update name if changed
@@ -1246,22 +1271,28 @@ export function ClothingGuide({}: GuideProps) {
           
           // Remove item from old body part
           const oldBodyPartItems = m.items[oldBodyPart] || [];
-          newItems[oldBodyPart] = oldBodyPartItems.filter(item => {
+          newItems[oldBodyPart] = oldBodyPartItems.map(item => {
             if (typeof item === 'string') {
-              return item !== editingItem.item;
+              return item !== editingItem.item ? item : null;
             } else if (typeof item === 'object' && item !== null && 'options' in item) {
               const filteredOptions = item.options.map(option => 
                 option.filter(opt => opt !== editingItem.item)
               ).filter(option => option.length > 0);
-              return filteredOptions.length > 0 && item.options.some(option => option.includes(editingItem.item));
+              if (filteredOptions.length > 0) {
+                return {
+                  options: filteredOptions
+                };
+              }
+              return null;
             }
-            return true;
-          });
+            return item;
+          }).filter((item): item is ClothingItem => item !== null);
           
           // If body part changed, add to new body part
           if (bodyPartChanged) {
-            const newBodyPartItems = m.items[newBodyPart] || [];
-            const itemExists = newBodyPartItems.some(item => {
+            // Use items from newItems if already set, otherwise from original modifier
+            const existingNewBodyPartItems = newItems[newBodyPart] || m.items[newBodyPart] || [];
+            const itemExists = existingNewBodyPartItems.some(item => {
               if (typeof item === 'string') return item === editItemName;
               if (typeof item === 'object' && item !== null && 'options' in item) {
                 return item.options.some(option => option.includes(editItemName));
@@ -1269,9 +1300,12 @@ export function ClothingGuide({}: GuideProps) {
               return false;
             });
             if (!itemExists) {
-              newItems[newBodyPart] = [...newBodyPartItems, editItemName];
+              newItems[newBodyPart] = [...existingNewBodyPartItems, editItemName];
             } else {
-              newItems[newBodyPart] = newBodyPartItems;
+              // Item already exists, ensure newItems[newBodyPart] is set
+              if (!newItems[newBodyPart]) {
+                newItems[newBodyPart] = existingNewBodyPartItems;
+              }
             }
           } else {
             // Same body part - update name if changed
@@ -1325,13 +1359,23 @@ export function ClothingGuide({}: GuideProps) {
       return updated;
     });
 
+    // Update wardrobe state - this will trigger currentWardrobe to update, which triggers scenarios to regenerate
     setWardrobes(updatedWardrobes);
     // Only save to storage if not in edit mode (changes are saved when exiting edit mode)
     if (!isEditMode) {
       storage.setWardrobes(updatedWardrobes);
     }
+    // Clear editing state - important to reset so next edit works correctly
     setEditingItem(null);
     setEditItemName('');
+    setEditItemBodyPart('chest');
+    setEditItemType('temp');
+    setEditItemMinTemp('');
+    setEditItemMaxTemp('');
+    setEditItemMinWind('');
+    setEditItemMinRain('');
+    setEditItemMaxRain('');
+    setEditItemMaxTempRain('');
     setEditItemError('');
   };
 
@@ -1549,8 +1593,8 @@ export function ClothingGuide({}: GuideProps) {
         ...weather,
         maxWindSpeed: 5, // Very low wind
       };
-      const baseRecommendation = recommendClothing(baseWeather, config);
-      const windRecommendation = recommendClothing(weather, config);
+      const baseRecommendation = recommendClothing(baseWeather, config, currentWardrobe);
+      const windRecommendation = recommendClothing(weather, config, currentWardrobe);
       
       // Find differences - only items added by wind
       const getWindOnlyItems = (base: ClothingItem[], withWind: ClothingItem[]): ClothingItem[] => {
@@ -1630,8 +1674,8 @@ export function ClothingGuide({}: GuideProps) {
         maxRainProbability: 0,
         maxPrecipitationIntensity: 0,
       };
-      const baseRecommendation = recommendClothing(baseWeather, config);
-      const rainRecommendation = recommendClothing(weather, config);
+      const baseRecommendation = recommendClothing(baseWeather, config, currentWardrobe);
+      const rainRecommendation = recommendClothing(weather, config, currentWardrobe);
       
       // Find differences - only items added by rain
       const getRainOnlyItems = (base: ClothingItem[], withRain: ClothingItem[]): ClothingItem[] => {
@@ -1797,8 +1841,9 @@ export function ClothingGuide({}: GuideProps) {
     };
 
     // Collect from temperature scenarios
+    // Pass currentWardrobe to ensure we use the latest React state, not localStorage
     tempScenarios.forEach(scenario => {
-      const rec = recommendClothing(scenario.weather, scenario.config);
+      const rec = recommendClothing(scenario.weather, scenario.config, currentWardrobe);
       rec.head.forEach(item => addItem(items.head, item));
       rec.neckFace.forEach(item => addItem(items.neckFace, item));
       rec.chest.forEach(item => addItem(items.chest, item));
@@ -1809,7 +1854,7 @@ export function ClothingGuide({}: GuideProps) {
 
     // Collect from wind scenarios
     windScenarios.forEach(scenario => {
-      const rec = recommendClothing(scenario.weather, scenario.config);
+      const rec = recommendClothing(scenario.weather, scenario.config, currentWardrobe);
       rec.head.forEach(item => addItem(items.head, item));
       rec.neckFace.forEach(item => addItem(items.neckFace, item));
       rec.chest.forEach(item => addItem(items.chest, item));
@@ -1820,7 +1865,7 @@ export function ClothingGuide({}: GuideProps) {
 
     // Collect from rain scenarios
     rainScenarios.forEach(scenario => {
-      const rec = recommendClothing(scenario.weather, scenario.config);
+      const rec = recommendClothing(scenario.weather, scenario.config, currentWardrobe);
       rec.head.forEach(item => addItem(items.head, item));
       rec.neckFace.forEach(item => addItem(items.neckFace, item));
       rec.chest.forEach(item => addItem(items.chest, item));
@@ -1943,7 +1988,7 @@ export function ClothingGuide({}: GuideProps) {
   // Check if temperature section has any content
   const hasTemperatureContent = useMemo(() => {
     return tempScenarios.some(scenario => {
-      const rec = recommendClothing(scenario.weather, scenario.config);
+      const rec = recommendClothing(scenario.weather, scenario.config, currentWardrobe);
       return rec.head.length > 0 || rec.neckFace.length > 0 || rec.chest.length > 0 ||
              rec.legs.length > 0 || rec.hands.length > 0 || rec.feet.length > 0;
     });
@@ -1956,8 +2001,8 @@ export function ClothingGuide({}: GuideProps) {
         ...scenario.weather,
         maxWindSpeed: 5,
       };
-      const baseRecommendation = recommendClothing(baseWeather, scenario.config);
-      const windRecommendation = recommendClothing(scenario.weather, scenario.config);
+            const baseRecommendation = recommendClothing(baseWeather, scenario.config, currentWardrobe);
+            const windRecommendation = recommendClothing(scenario.weather, scenario.config, currentWardrobe);
       
       const getWindOnlyItems = (base: ClothingItem[], withWind: ClothingItem[]): ClothingItem[] => {
         const baseFlat = flattenItems(base);
@@ -1995,8 +2040,8 @@ export function ClothingGuide({}: GuideProps) {
         maxRainProbability: 0,
         maxPrecipitationIntensity: 0,
       };
-      const baseRecommendation = recommendClothing(baseWeather, scenario.config);
-      const rainRecommendation = recommendClothing(scenario.weather, scenario.config);
+            const baseRecommendation = recommendClothing(baseWeather, scenario.config, currentWardrobe);
+            const rainRecommendation = recommendClothing(scenario.weather, scenario.config, currentWardrobe);
       
       const getRainOnlyItems = (base: ClothingItem[], withRain: ClothingItem[]): ClothingItem[] => {
         const baseFlat = flattenItems(base);
@@ -2345,7 +2390,7 @@ export function ClothingGuide({}: GuideProps) {
             .map((scenario) => {
               // Use the representative temperature from the scenario's weather
               // This is already calculated to be slightly above segmentMinTemp to match ranges
-              const recommendation = recommendClothing(scenario.weather, scenario.config);
+              const recommendation = recommendClothing(scenario.weather, scenario.config, currentWardrobe);
               return { scenario, recommendation };
             })
             .map(({ scenario, recommendation }, idx) => {
