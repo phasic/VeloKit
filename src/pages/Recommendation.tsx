@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { ClothingRecommendation, WeatherSummary, RideConfig, Location } from '../types';
 import { storage } from '../utils/storage';
 import { formatDateTime } from '../utils/dateFormat';

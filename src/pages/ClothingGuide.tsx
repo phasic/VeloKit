@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { recommendClothing } from '../logic/clothingEngine';
-import { WeatherSummary, RideConfig } from '../types';
+import { WeatherSummary, RideConfig, ClothingItem } from '../types';
 import { storage } from '../utils/storage';
 import './ClothingGuide.css';
 
@@ -68,6 +68,22 @@ export function ClothingGuide({}: GuideProps) {
     return scenarios;
   };
 
+  // Helper to flatten ClothingItem[] to string[] for comparison (shared across functions)
+  const flattenItems = (items: ClothingItem[]): string[] => {
+    const result: string[] = [];
+    items.forEach(item => {
+      if (typeof item === 'string') {
+        result.push(item);
+      } else if (typeof item === 'object' && item !== null && 'options' in item) {
+        // Flatten all options
+        item.options.forEach(option => {
+          option.forEach(optItem => result.push(optItem));
+        });
+      }
+    });
+    return result;
+  };
+
   // Generate scenarios for wind variations - only show unique recommendations
   const generateWindScenarios = () => {
     const winds = [5, 10, 15, 20, 25, 30, 35, 40];
@@ -107,8 +123,19 @@ export function ClothingGuide({}: GuideProps) {
       const windRecommendation = recommendClothing(weather, config);
       
       // Find differences - only items added by wind
-      const getWindOnlyItems = (base: string[], withWind: string[]) => {
-        return withWind.filter(item => !base.includes(item));
+      const getWindOnlyItems = (base: ClothingItem[], withWind: ClothingItem[]): ClothingItem[] => {
+        const baseFlat = flattenItems(base);
+        return withWind.filter(item => {
+          if (typeof item === 'string') {
+            return !baseFlat.includes(item);
+          } else if (typeof item === 'object' && item !== null && 'options' in item) {
+            // Check if any option items are new
+            return item.options.some(option => 
+              option.some(optItem => !baseFlat.includes(optItem))
+            );
+          }
+          return false;
+        });
       };
       
       const windOnly = {
@@ -177,8 +204,19 @@ export function ClothingGuide({}: GuideProps) {
       const rainRecommendation = recommendClothing(weather, config);
       
       // Find differences - only items added by rain
-      const getRainOnlyItems = (base: string[], withRain: string[]) => {
-        return withRain.filter(item => !base.includes(item));
+      const getRainOnlyItems = (base: ClothingItem[], withRain: ClothingItem[]): ClothingItem[] => {
+        const baseFlat = flattenItems(base);
+        return withRain.filter(item => {
+          if (typeof item === 'string') {
+            return !baseFlat.includes(item);
+          } else if (typeof item === 'object' && item !== null && 'options' in item) {
+            // Check if any option items are new
+            return item.options.some(option => 
+              option.some(optItem => !baseFlat.includes(optItem))
+            );
+          }
+          return false;
+        });
       };
       
       const rainOnly = {
@@ -308,37 +346,48 @@ export function ClothingGuide({}: GuideProps) {
       feet: new Set<string>(),
     };
 
+    // Helper to add ClothingItem to Set (flattening options)
+    const addItem = (set: Set<string>, item: ClothingItem) => {
+      if (typeof item === 'string') {
+        set.add(item);
+      } else if (typeof item === 'object' && item !== null && 'options' in item) {
+        item.options.forEach(option => {
+          option.forEach(optItem => set.add(optItem));
+        });
+      }
+    };
+
     // Collect from temperature scenarios
     tempScenarios.forEach(scenario => {
       const rec = recommendClothing(scenario.weather, scenario.config);
-      rec.head.forEach(item => items.head.add(item));
-      rec.neckFace.forEach(item => items.neckFace.add(item));
-      rec.chest.forEach(item => items.chest.add(item));
-      rec.legs.forEach(item => items.legs.add(item));
-      rec.hands.forEach(item => items.hands.add(item));
-      rec.feet.forEach(item => items.feet.add(item));
+      rec.head.forEach(item => addItem(items.head, item));
+      rec.neckFace.forEach(item => addItem(items.neckFace, item));
+      rec.chest.forEach(item => addItem(items.chest, item));
+      rec.legs.forEach(item => addItem(items.legs, item));
+      rec.hands.forEach(item => addItem(items.hands, item));
+      rec.feet.forEach(item => addItem(items.feet, item));
     });
 
     // Collect from wind scenarios
     windScenarios.forEach(scenario => {
       const rec = recommendClothing(scenario.weather, scenario.config);
-      rec.head.forEach(item => items.head.add(item));
-      rec.neckFace.forEach(item => items.neckFace.add(item));
-      rec.chest.forEach(item => items.chest.add(item));
-      rec.legs.forEach(item => items.legs.add(item));
-      rec.hands.forEach(item => items.hands.add(item));
-      rec.feet.forEach(item => items.feet.add(item));
+      rec.head.forEach(item => addItem(items.head, item));
+      rec.neckFace.forEach(item => addItem(items.neckFace, item));
+      rec.chest.forEach(item => addItem(items.chest, item));
+      rec.legs.forEach(item => addItem(items.legs, item));
+      rec.hands.forEach(item => addItem(items.hands, item));
+      rec.feet.forEach(item => addItem(items.feet, item));
     });
 
     // Collect from rain scenarios
     rainScenarios.forEach(scenario => {
       const rec = recommendClothing(scenario.weather, scenario.config);
-      rec.head.forEach(item => items.head.add(item));
-      rec.neckFace.forEach(item => items.neckFace.add(item));
-      rec.chest.forEach(item => items.chest.add(item));
-      rec.legs.forEach(item => items.legs.add(item));
-      rec.hands.forEach(item => items.hands.add(item));
-      rec.feet.forEach(item => items.feet.add(item));
+      rec.head.forEach(item => addItem(items.head, item));
+      rec.neckFace.forEach(item => addItem(items.neckFace, item));
+      rec.chest.forEach(item => addItem(items.chest, item));
+      rec.legs.forEach(item => addItem(items.legs, item));
+      rec.hands.forEach(item => addItem(items.hands, item));
+      rec.feet.forEach(item => addItem(items.feet, item));
     });
 
     const sortedItems = {
@@ -381,11 +430,26 @@ export function ClothingGuide({}: GuideProps) {
     return Math.round(displayWind) + ' ' + windUnit;
   };
 
-  const renderCategory = (items: string[], title: string) => {
+  // Helper to convert ClothingItem[] to display string
+  const itemsToString = (items: ClothingItem[]): string => {
+    const parts: string[] = [];
+    items.forEach(item => {
+      if (typeof item === 'string') {
+        parts.push(item);
+      } else if (typeof item === 'object' && item !== null && 'options' in item) {
+        // Format options as "item1 OR item2"
+        const optionStrings = item.options.map(option => option.join(' + '));
+        parts.push(optionStrings.join(' OR '));
+      }
+    });
+    return parts.join(', ');
+  };
+
+  const renderCategory = (items: ClothingItem[], title: string) => {
     if (items.length === 0) return null;
     return (
       <div className="guide-category">
-        <strong>{title}:</strong> {items.join(', ')}
+        <strong>{title}:</strong> {itemsToString(items)}
       </div>
     );
   };
@@ -571,8 +635,18 @@ export function ClothingGuide({}: GuideProps) {
             const windRecommendation = recommendClothing(scenario.weather, scenario.config);
             
             // Find differences - only items added by wind
-            const getWindOnlyItems = (base: string[], withWind: string[]) => {
-              return withWind.filter(item => !base.includes(item));
+            const getWindOnlyItems = (base: ClothingItem[], withWind: ClothingItem[]): ClothingItem[] => {
+              const baseFlat = flattenItems(base);
+              return withWind.filter(item => {
+                if (typeof item === 'string') {
+                  return !baseFlat.includes(item);
+                } else if (typeof item === 'object' && item !== null && 'options' in item) {
+                  return item.options.some(option => 
+                    option.some(optItem => !baseFlat.includes(optItem))
+                  );
+                }
+                return false;
+              });
             };
             
             const windOnly = {
@@ -637,9 +711,34 @@ export function ClothingGuide({}: GuideProps) {
             // Get recommendation with rain
             const rainRecommendation = recommendClothing(scenario.weather, scenario.config);
             
+            // Helper to flatten ClothingItem[] to string[] for comparison
+            const flattenItemsLocal = (items: ClothingItem[]): string[] => {
+              const result: string[] = [];
+              items.forEach(item => {
+                if (typeof item === 'string') {
+                  result.push(item);
+                } else if (typeof item === 'object' && item !== null && 'options' in item) {
+                  item.options.forEach(option => {
+                    option.forEach(optItem => result.push(optItem));
+                  });
+                }
+              });
+              return result;
+            };
+            
             // Find differences - only items added by rain
-            const getRainOnlyItems = (base: string[], withRain: string[]) => {
-              return withRain.filter(item => !base.includes(item));
+            const getRainOnlyItems = (base: ClothingItem[], withRain: ClothingItem[]): ClothingItem[] => {
+              const baseFlat = flattenItemsLocal(base);
+              return withRain.filter(item => {
+                if (typeof item === 'string') {
+                  return !baseFlat.includes(item);
+                } else if (typeof item === 'object' && item !== null && 'options' in item) {
+                  return item.options.some(option => 
+                    option.some(optItem => !baseFlat.includes(optItem))
+                  );
+                }
+                return false;
+              });
             };
             
             const rainOnly = {
