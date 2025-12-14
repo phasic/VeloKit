@@ -36,6 +36,25 @@ export function Home({ onQuickRecommendation, weatherOverride }: HomeProps) {
   const [touchStart, setTouchStart] = useState<{ y: number; scrollTop: number } | null>(null);
   const pageRef = useRef<HTMLDivElement>(null);
 
+  // Helper function to determine font size for temperature range
+  const getTemperatureFontSize = (min: number, max: number): string | undefined => {
+    const minRounded = Math.round(min);
+    const maxRounded = Math.round(max);
+    // Check if both are double digits (absolute value >= 10)
+    const bothNegativeDoubleDigits = minRounded <= -10 && maxRounded <= -10;
+    const bothPositiveDoubleDigits = minRounded >= 10 && maxRounded >= 10;
+    
+    // Negative double digits need even smaller font due to minus sign
+    if (bothNegativeDoubleDigits) {
+      return '14px';
+    }
+    // Positive double digits use slightly larger font
+    if (bothPositiveDoubleDigits) {
+      return '16px';
+    }
+    return undefined;
+  };
+
   const loadQuickView = async () => {
     setQuickViewLoading(true);
     setError(null);
@@ -354,7 +373,7 @@ export function Home({ onQuickRecommendation, weatherOverride }: HomeProps) {
                     className="badge-icon"
                   />
                 </div>
-                <div className="badge-value">
+                <div className="badge-value" style={{ fontSize: getTemperatureFontSize(quickViewData.weather.minFeelsLike, quickViewData.weather.maxFeelsLike) }}>
                 {Math.round(quickViewData.weather.minFeelsLike) === Math.round(quickViewData.weather.maxFeelsLike) ? (
                   <>
                     {Math.round(quickViewData.weather.minFeelsLike)}<span className="badge-unit">{tempUnit}</span>
@@ -383,7 +402,7 @@ export function Home({ onQuickRecommendation, weatherOverride }: HomeProps) {
                     className="badge-icon"
                   />
                 </div>
-              <div className="badge-value">
+              <div className="badge-value" style={{ fontSize: getTemperatureFontSize(quickViewData.weather.minTemp, quickViewData.weather.maxTemp) }}>
                 {Math.round(quickViewData.weather.minTemp) === Math.round(quickViewData.weather.maxTemp) ? (
                   <>
                     {Math.round(quickViewData.weather.minTemp)}<span className="badge-unit">{tempUnit}</span>

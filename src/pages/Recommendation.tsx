@@ -23,6 +23,25 @@ export function Recommendation({
   const tempUnit = isMetric ? '°C' : '°F';
   const windUnit = isMetric ? 'km/h' : 'mph';
 
+  // Helper function to determine font size for temperature range
+  const getTemperatureFontSize = (min: number, max: number): string | undefined => {
+    const minRounded = Math.round(min);
+    const maxRounded = Math.round(max);
+    // Check if both are double digits (absolute value >= 10)
+    const bothNegativeDoubleDigits = minRounded <= -10 && maxRounded <= -10;
+    const bothPositiveDoubleDigits = minRounded >= 10 && maxRounded >= 10;
+    
+    // Negative double digits need even smaller font due to minus sign
+    if (bothNegativeDoubleDigits) {
+      return '14px';
+    }
+    // Positive double digits use slightly larger font
+    if (bothPositiveDoubleDigits) {
+      return '16px';
+    }
+    return undefined;
+  };
+
   // Helper function to determine item type
   const getItemType = (item: string | { options: string[][] }, weather: WeatherSummary, config: RideConfig): 'temp' | 'wind' | 'rain' => {
     // If it's an options object, check the first option's first item
@@ -108,7 +127,7 @@ export function Recommendation({
                   className="badge-icon"
                 />
               </div>
-              <div className="badge-value">
+              <div className="badge-value" style={{ fontSize: getTemperatureFontSize(weather.minFeelsLike, weather.maxFeelsLike) }}>
                 {Math.round(weather.minFeelsLike) === Math.round(weather.maxFeelsLike) ? (
                   <>
                     {Math.round(weather.minFeelsLike)}<span className="badge-unit">{tempUnit}</span>
@@ -137,7 +156,7 @@ export function Recommendation({
                   className="badge-icon"
                 />
               </div>
-              <div className="badge-value">
+              <div className="badge-value" style={{ fontSize: getTemperatureFontSize(weather.minTemp, weather.maxTemp) }}>
                 {Math.round(weather.minTemp) === Math.round(weather.maxTemp) ? (
                   <>
                     {Math.round(weather.minTemp)}<span className="badge-unit">{tempUnit}</span>
