@@ -2220,6 +2220,7 @@ export function ClothingGuide({}: GuideProps) {
             
             if (!isMenuButton && !isSwitcherButton && hasMultipleWardrobes) {
               setShowWardrobeSwitcher(!showWardrobeSwitcher);
+              setShowMenu(false); // Close triple dots menu if open
             }
           }}
         >
@@ -2238,6 +2239,7 @@ export function ClothingGuide({}: GuideProps) {
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowWardrobeSwitcher(!showWardrobeSwitcher);
+                    setShowMenu(false); // Close triple dots menu if open
                   }}
                   aria-label="Switch wardrobe"
                 >
@@ -2279,6 +2281,7 @@ export function ClothingGuide({}: GuideProps) {
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowMenu(!showMenu);
+                  setShowWardrobeSwitcher(false); // Close wardrobe switcher if open
                 }}
                 aria-label="Wardrobe options"
               >

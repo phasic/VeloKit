@@ -39,6 +39,8 @@ function App() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const [showNavigateAwayConfirm, setShowNavigateAwayConfirm] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<Page | null>(null);
   
   // Check if default wardrobe is selected
   // Only treat as default if selectedWardrobeId is null, 'default', or empty string
@@ -144,6 +146,36 @@ function App() {
     setShowDiscardConfirm(false);
   };
 
+  // Handle navigation with edit mode check
+  const handleNavigate = (targetPage: Page) => {
+    // If in edit mode and navigating away from guide page, show confirmation
+    if (isEditMode && page === 'guide' && targetPage !== 'guide') {
+      setPendingNavigation(targetPage);
+      setShowNavigateAwayConfirm(true);
+      return;
+    }
+    // Otherwise, navigate normally
+    setPage(targetPage);
+  };
+
+  // Confirm navigation away (discard changes and navigate)
+  const handleConfirmNavigateAway = () => {
+    // Discard changes first
+    window.dispatchEvent(new CustomEvent('discardWardrobeChanges'));
+    // Then navigate
+    if (pendingNavigation) {
+      setPage(pendingNavigation);
+      setPendingNavigation(null);
+    }
+    setShowNavigateAwayConfirm(false);
+  };
+
+  // Cancel navigation away (stay on current page)
+  const handleCancelNavigateAway = () => {
+    setPendingNavigation(null);
+    setShowNavigateAwayConfirm(false);
+  };
+
   const handleRideConfig = async (loc: Location, rideConfig: RideConfig) => {
     setLoading(true);
     setError(null);
@@ -169,7 +201,7 @@ function App() {
 
       setWeather(weatherData);
       setRecommendation(clothingRec);
-      setPage('recommendation');
+      handleNavigate('recommendation');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch weather data');
     } finally {
@@ -178,7 +210,7 @@ function App() {
   };
 
   const handleNewRecommendation = () => {
-    setPage('setup');
+    handleNavigate('setup');
     setLocation(null);
     setConfig(null);
     setWeather(null);
@@ -276,7 +308,7 @@ function App() {
           onClick={() => {
             // Save current page before navigating to settings
             setPreviousPage(page);
-            setPage('settings');
+            handleNavigate('settings');
           }}
           aria-label="Settings"
         >
@@ -324,7 +356,7 @@ function App() {
                   setRecommendation(rec);
                   setConfig(cfg);
                 }}
-                onNavigateToWardrobe={() => setPage('guide')}
+                onNavigateToWardrobe={() => handleNavigate('guide')}
                 weatherOverride={weatherOverride}
               />
             )}
@@ -349,7 +381,7 @@ function App() {
           <Settings 
             onBack={() => {
               // Return to previous page if available, otherwise go to home
-              setPage(previousPage || 'home');
+              handleNavigate(previousPage || 'home');
               setPreviousPage(null);
             }} 
             onAbout={() => {
@@ -370,7 +402,7 @@ function App() {
         )}
 
         {!loading && page === 'wardrobes' && (
-          <WardrobeManagement onBack={() => setPage('guide')} />
+          <WardrobeManagement onBack={() => handleNavigate('guide')} />
         )}
 
             {!loading && page === 'guide' && (
@@ -381,9 +413,9 @@ function App() {
           {(page === 'home' || page === 'setup' || page === 'guide' || page === 'recommendation') && (
             <BottomTabBar
               currentPage={page}
-              onHome={() => setPage('home')}
-              onCustom={() => setPage('setup')}
-              onGuide={() => setPage('guide')}
+              onHome={() => handleNavigate('home')}
+              onCustom={() => handleNavigate('setup')}
+              onGuide={() => handleNavigate('guide')}
               customLoading={loading && page === 'setup'}
             />
           )}
@@ -443,6 +475,33 @@ function App() {
                 style={{ backgroundColor: '#34C759' }}
               >
                 Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Navigate Away Confirmation Modal */}
+      {showNavigateAwayConfirm && (
+        <div className="modal-overlay" onClick={handleCancelNavigateAway}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Discard Changes?</h3>
+            <p>You have unsaved changes in edit mode. Navigating away will discard all changes you've made. Are you sure you want to continue?</p>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleCancelNavigateAway}
+              >
+                Stay on Page
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleConfirmNavigateAway}
+                style={{ backgroundColor: '#FF3B30' }}
+              >
+                Discard & Navigate
               </button>
             </div>
           </div>
