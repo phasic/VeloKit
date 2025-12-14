@@ -1,5 +1,6 @@
 import { WeatherSummary, ClothingRecommendation, RideConfig } from '../types';
-import clothingConfigData from './clothingConfig.json';
+import { storage } from '../utils/storage';
+import { getActiveWardrobe } from '../utils/wardrobeUtils';
 
 type ClothingItem = string | { options: string[][] };
 
@@ -43,7 +44,19 @@ interface ClothingConfig {
   };
 }
 
-const clothingConfig = clothingConfigData as ClothingConfig;
+// Get the active wardrobe configuration
+function getClothingConfig(): ClothingConfig {
+  const wardrobes = storage.getWardrobes();
+  const selectedId = storage.getSelectedWardrobeId();
+  const activeWardrobe = getActiveWardrobe(wardrobes, selectedId);
+  
+  return {
+    temperatureRanges: activeWardrobe.temperatureRanges,
+    windModifiers: activeWardrobe.windModifiers,
+    rainModifiers: activeWardrobe.rainModifiers,
+    removableLayers: activeWardrobe.removableLayers,
+  };
+}
 
 function matchesTemperatureRange(range: TemperatureRange, temp: number): boolean {
   const minMatch = range.minTemp === null || temp > range.minTemp;
@@ -90,6 +103,9 @@ export function recommendClothing(
   const hands: ClothingItem[] = [];
   const feet: ClothingItem[] = [];
   const explanation: string[] = [];
+
+  // Get the active wardrobe configuration
+  const clothingConfig = getClothingConfig();
 
   // Find matching temperature range
   const tempRange = clothingConfig.temperatureRanges.find(range =>

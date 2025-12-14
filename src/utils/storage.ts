@@ -14,6 +14,8 @@ const STORAGE_KEYS = {
   INSTALL_PROMPT_DISMISSED: 'dressmyride_install_prompt_dismissed',
   FORCE_INSTALL_PROMPT: 'dressmyride_force_install_prompt',
   DISABLE_INSTALL_PROMPT: 'dressmyride_disable_install_prompt',
+  WARDROBES: 'dressmyride_wardrobes',
+  SELECTED_WARDROBE: 'dressmyride_selected_wardrobe',
 } as const;
 
 export const storage = {
@@ -233,6 +235,32 @@ export const storage = {
 
       setDisableInstallPrompt: (disabled: boolean): void => {
         localStorage.setItem(STORAGE_KEYS.DISABLE_INSTALL_PROMPT, disabled ? 'true' : 'false');
+      },
+
+      getWardrobes: (): import('../types').WardrobeConfig[] => {
+        const wardrobes = localStorage.getItem(STORAGE_KEYS.WARDROBES);
+        if (!wardrobes) return [];
+        try {
+          return JSON.parse(wardrobes);
+        } catch {
+          return [];
+        }
+      },
+
+      setWardrobes: (wardrobes: import('../types').WardrobeConfig[]): void => {
+        localStorage.setItem(STORAGE_KEYS.WARDROBES, JSON.stringify(wardrobes));
+      },
+
+      getSelectedWardrobeId: (): string | null => {
+        return localStorage.getItem(STORAGE_KEYS.SELECTED_WARDROBE);
+      },
+
+      setSelectedWardrobeId: (id: string | null): void => {
+        if (id) {
+          localStorage.setItem(STORAGE_KEYS.SELECTED_WARDROBE, id);
+        } else {
+          localStorage.removeItem(STORAGE_KEYS.SELECTED_WARDROBE);
+        }
       },
     };
 

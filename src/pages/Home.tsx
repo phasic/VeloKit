@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, Fragment } from 'react';
+import { useState, useEffect, useRef, Fragment, useMemo } from 'react';
 import { Location, RideConfig, WeatherSummary, ClothingRecommendation } from '../types';
 import { storage } from '../utils/storage';
 import { fetchWeatherForecast, reverseGeocode } from '../services/weatherService';
@@ -6,6 +6,7 @@ import { recommendClothing } from '../logic/clothingEngine';
 import { formatDateTime } from '../utils/dateFormat';
 import { generateDemoWeather } from '../utils/demoWeather';
 import { WeatherChart } from '../components/WeatherChart';
+import { getActiveWardrobe } from '../utils/wardrobeUtils';
 
 interface HomeProps {
   onLocationFound: (location: Location) => void;
@@ -16,10 +17,11 @@ interface HomeProps {
     recommendation: ClothingRecommendation,
     config: RideConfig
   ) => void;
+  onNavigateToWardrobe?: () => void;
   weatherOverride?: Partial<WeatherSummary> | null;
 }
 
-export function Home({ onQuickRecommendation, weatherOverride }: HomeProps) {
+export function Home({ onQuickRecommendation, onNavigateToWardrobe, weatherOverride }: HomeProps) {
   const [error, setError] = useState<string | null>(null);
   const [quickViewData, setQuickViewData] = useState<{
     weather: WeatherSummary;
@@ -35,6 +37,33 @@ export function Home({ onQuickRecommendation, weatherOverride }: HomeProps) {
   });
   const [touchStart, setTouchStart] = useState<{ y: number; scrollTop: number } | null>(null);
   const pageRef = useRef<HTMLDivElement>(null);
+
+  // Check if current wardrobe is empty
+  const isWardrobeEmpty = useMemo(() => {
+    if (!quickViewData) return false;
+    const wardrobes = storage.getWardrobes();
+    const selectedId = storage.getSelectedWardrobeId();
+    const currentWardrobe = getActiveWardrobe(wardrobes, selectedId);
+    const isDefaultWardrobe = !selectedId || selectedId === 'default';
+    
+    if (isDefaultWardrobe) return false; // Default wardrobe is never empty
+    
+    return currentWardrobe.temperatureRanges.length === 0 &&
+           currentWardrobe.windModifiers.length === 0 &&
+           currentWardrobe.rainModifiers.length === 0;
+  }, [quickViewData]);
+
+  // Check if recommendation is empty
+  const isRecommendationEmpty = useMemo(() => {
+    if (!quickViewData) return false;
+    const rec = quickViewData.recommendation;
+    return rec.head.length === 0 &&
+           rec.neckFace.length === 0 &&
+           rec.chest.length === 0 &&
+           rec.legs.length === 0 &&
+           rec.hands.length === 0 &&
+           rec.feet.length === 0;
+  }, [quickViewData]);
 
   // Helper function to determine font size for temperature range
   const getTemperatureFontSize = (min: number, max: number): string | undefined => {
@@ -476,6 +505,24 @@ export function Home({ onQuickRecommendation, weatherOverride }: HomeProps) {
                 <span>Refresh</span>
               </button>
             </div>
+            {isWardrobeEmpty && isRecommendationEmpty ? (
+              <div className="empty-wardrobe-quick-view-message">
+                <div className="empty-wardrobe-icon">👕</div>
+                <h3 className="empty-wardrobe-title">Your wardrobe is empty</h3>
+                <p className="empty-wardrobe-text">
+                  Start adding clothing items or switch to a different wardrobe.
+                </p>
+                {onNavigateToWardrobe && (
+                  <button 
+                    className="btn btn-primary empty-wardrobe-button"
+                    onClick={onNavigateToWardrobe}
+                  >
+                    Go to Wardrobe
+                  </button>
+                )}
+              </div>
+            ) : (
+              <>
             {quickViewData.recommendation.head.length > 0 && (
               <div className="quick-kit">
                 <h3>Head</h3>
@@ -738,6 +785,8 @@ export function Home({ onQuickRecommendation, weatherOverride }: HomeProps) {
                   </div>
                 ))}
               </div>
+            )}
+              </>
             )}
           </div>
 

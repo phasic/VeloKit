@@ -1993,6 +1993,300 @@ img.ios-tab-icon {
 
 :root.dark .modal-content {
   background-color: rgba(28, 28, 30, 0.95);
+}
+
+/* Current Wardrobe Section */
+.current-wardrobe-section {
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 10;
+}
+
+.current-wardrobe-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: rgba(0, 122, 255, 0.2);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 16px;
+  border: 0.5px solid rgba(0, 122, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 122, 255, 0.1);
+  position: relative;
+}
+
+:root.dark .current-wardrobe-card {
+  background-color: rgba(10, 132, 255, 0.2);
+  border-color: rgba(10, 132, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(10, 132, 255, 0.2);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) .current-wardrobe-card {
+    background-color: rgba(10, 132, 255, 0.2);
+    border-color: rgba(10, 132, 255, 0.3);
+    box-shadow: 0 4px 16px rgba(10, 132, 255, 0.2);
+  }
+}
+
+.current-wardrobe-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.current-wardrobe-name {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-color);
+}
+
+.wardrobe-badge {
+  font-size: 12px;
+  padding: 4px 8px;
+  background-color: rgba(0, 122, 255, 0.2);
+  color: var(--primary-color);
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+:root.dark .wardrobe-badge {
+  background-color: rgba(10, 132, 255, 0.2);
+}
+
+.wardrobe-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wardrobe-switcher-container {
+  position: relative;
+  z-index: 1003;
+}
+
+.wardrobe-switcher-button {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wardrobe-switcher-button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+:root.dark .wardrobe-switcher-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.switcher-icon {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-color);
+  line-height: 1;
+  display: inline-block;
+}
+
+.wardrobe-switcher-dropdown {
+  position: fixed;
+  top: auto;
+  right: auto;
+  background-color: var(--card-background);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  min-width: 280px;
+  max-width: 320px;
+  z-index: 1003;
+  overflow: hidden;
+  border: 0.5px solid var(--separator-color);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+:root.dark .wardrobe-switcher-dropdown {
+  background-color: rgba(28, 28, 30, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.switcher-header {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--secondary-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 0.5px solid var(--separator-color);
+}
+
+.switcher-item {
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.switcher-item:hover {
+  background-color: rgba(142, 142, 147, 0.12);
+}
+
+:root.dark .switcher-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.switcher-item.active {
+  background-color: rgba(0, 122, 255, 0.15);
+}
+
+:root.dark .switcher-item.active {
+  background-color: rgba(10, 132, 255, 0.2);
+}
+
+.switcher-item-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.switcher-item-name {
+  font-size: 15px;
+  color: var(--text-color);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.switcher-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  background-color: rgba(0, 122, 255, 0.2);
+  color: var(--primary-color);
+  border-radius: 6px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.switcher-item-count {
+  font-size: 13px;
+  color: var(--secondary-color);
+  flex-shrink: 0;
+}
+
+.switcher-item.active .switcher-item-count {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.wardrobe-menu-container {
+  position: relative;
+}
+
+.wardrobe-menu-button {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wardrobe-menu-button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+:root.dark .wardrobe-menu-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.menu-dots {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-color);
+  line-height: 1;
+  transform: rotate(90deg);
+  display: inline-block;
+}
+
+.wardrobe-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background-color: var(--card-background);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  min-width: 200px;
+  z-index: 1000;
+  overflow: hidden;
+  border: 0.5px solid var(--separator-color);
+}
+
+:root.dark .wardrobe-menu-dropdown {
+  background-color: rgba(28, 28, 30, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.menu-item {
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 15px;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: background-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menu-item:hover:not(:disabled) {
+  background-color: rgba(142, 142, 147, 0.12);
+}
+
+:root.dark .menu-item:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.menu-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.menu-item-danger {
+  color: #FF3B30;
+}
+
+.menu-item-danger:hover:not(:disabled) {
+  background-color: rgba(255, 59, 48, 0.1);
+}
+
+:root.dark .modal-content {
+  background-color: rgba(28, 28, 30, 0.95);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
@@ -2062,5 +2356,94 @@ img.ios-tab-icon {
   :root:not(.light) .pull-to-refresh-icon {
     filter: brightness(0) saturate(100%) invert(40%) sepia(95%) saturate(7482%) hue-rotate(212deg) brightness(130%) contrast(101%);
   }
+}
+
+/* Empty Wardrobe Message */
+.empty-wardrobe-message {
+  text-align: center;
+  padding: 48px 24px;
+  margin: 24px 0;
+  background-color: rgba(142, 142, 147, 0.08);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 16px;
+  border: 0.5px solid rgba(142, 142, 147, 0.2);
+  position: relative;
+  z-index: 1;
+}
+
+:root.dark .empty-wardrobe-message {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.empty-wardrobe-icon {
+  font-size: 64px;
+  line-height: 1;
+  margin-bottom: 16px;
+}
+
+.empty-wardrobe-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0 0 12px 0;
+  letter-spacing: -0.41px;
+}
+
+.empty-wardrobe-text {
+  font-size: 16px;
+  color: var(--secondary-color);
+  margin: 0;
+  line-height: 1.5;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Empty Wardrobe Message in Quick View */
+.empty-wardrobe-quick-view-message {
+  text-align: center;
+  padding: 48px 24px;
+  margin: 24px 0;
+  background-color: rgba(142, 142, 147, 0.08);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 16px;
+  border: 0.5px solid rgba(142, 142, 147, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+:root.dark .empty-wardrobe-quick-view-message {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.empty-wardrobe-quick-view-message .empty-wardrobe-icon {
+  font-size: 64px;
+  line-height: 1;
+  margin-bottom: 16px;
+}
+
+.empty-wardrobe-quick-view-message .empty-wardrobe-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0 0 12px 0;
+  letter-spacing: -0.41px;
+}
+
+.empty-wardrobe-quick-view-message .empty-wardrobe-text {
+  font-size: 16px;
+  color: var(--secondary-color);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.empty-wardrobe-button {
+  max-width: 200px;
+  margin-top: 16px;
 }
 

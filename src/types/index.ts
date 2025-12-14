@@ -67,5 +67,50 @@ export interface Location {
   city?: string;
 }
 
-export type Page = 'welcome' | 'home' | 'setup' | 'recommendation' | 'settings' | 'manual' | 'guide' | 'about';
+export type Page = 'welcome' | 'home' | 'setup' | 'recommendation' | 'settings' | 'manual' | 'guide' | 'about' | 'wardrobes';
+
+// Wardrobe types
+
+export interface ClothingItems {
+  head?: ClothingItem[];
+  neckFace?: ClothingItem[];
+  chest?: ClothingItem[];
+  legs?: ClothingItem[];
+  hands?: ClothingItem[];
+  feet?: ClothingItem[];
+}
+
+export interface TemperatureRange {
+  minTemp: number | null;
+  maxTemp?: number | null;
+  items: ClothingItems;
+  explanation: string;
+}
+
+export interface WindModifier {
+  minWindSpeed: number;
+  items: ClothingItems;
+  explanation: string;
+}
+
+export interface RainModifier {
+  minRainProbability: number;
+  maxRainProbability?: number;
+  maxTemp?: number;
+  items: ClothingItems;
+  explanation: string;
+}
+
+export interface WardrobeConfig {
+  id: string;
+  name: string;
+  isDefault: boolean;
+  temperatureRanges: TemperatureRange[];
+  windModifiers: WindModifier[];
+  rainModifiers: RainModifier[];
+  removableLayers: {
+    maxStartTemp: number;
+    explanation: string;
+  };
+}
 

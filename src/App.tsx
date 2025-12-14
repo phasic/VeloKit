@@ -7,6 +7,7 @@ import { Settings } from './pages/Settings';
 import { ClothingGuide } from './pages/ClothingGuide';
 import { About } from './pages/About';
 import { Welcome } from './pages/Welcome';
+import { WardrobeManagement } from './pages/WardrobeManagement';
 import { BottomTabBar } from './components/BottomTabBar';
 import { InstallPrompt } from './components/InstallPrompt';
 import { fetchWeatherForecast } from './services/weatherService';
@@ -175,6 +176,7 @@ function App() {
                   setRecommendation(rec);
                   setConfig(cfg);
                 }}
+                onNavigateToWardrobe={() => setPage('guide')}
                 weatherOverride={weatherOverride}
               />
             )}
@@ -206,6 +208,10 @@ function App() {
 
         {!loading && page === 'about' && (
           <About onBack={() => setPage('settings')} />
+        )}
+
+        {!loading && page === 'wardrobes' && (
+          <WardrobeManagement onBack={() => setPage('guide')} />
         )}
 
             {!loading && page === 'guide' && (
