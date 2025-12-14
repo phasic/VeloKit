@@ -192,6 +192,21 @@ function App() {
       <div className={`floating-header-actions ${showFloatingActions ? 'visible' : 'hidden'}`}>
         {page === 'guide' && !isDefaultWardrobe && (
           <>
+            {/* Add button - always visible when not default wardrobe */}
+            <button
+              className="btn-icon floating-action"
+              onClick={() => {
+                // Open add clothing modal - will be handled by ClothingGuide component
+                const event = new CustomEvent('openAddClothing');
+                window.dispatchEvent(event);
+              }}
+              aria-label="Add Clothing"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 4.16667V15.8333M4.16667 10H15.8333" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            
             {!isEditMode ? (
               <button
                 className="btn-icon floating-action"

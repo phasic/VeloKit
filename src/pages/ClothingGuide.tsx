@@ -63,10 +63,10 @@ export function ClothingGuide({}: GuideProps) {
     wind: boolean;
     rain: boolean;
   }>({
-    uniqueItems: false,
-    temperature: false,
-    wind: false,
-    rain: false,
+    uniqueItems: true,
+    temperature: true,
+    wind: true,
+    rain: true,
   });
 
   // Get current wardrobe
