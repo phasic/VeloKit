@@ -130,14 +130,16 @@ export function WeatherChart({ weather, config }: WeatherChartProps) {
             yAxisId="left"
             stroke="var(--primary-color)"
             style={{ fontSize: '12px' }}
-            label={{ value: `Temp (${tempUnit})`, angle: -90, position: 'insideLeft', style: { fontSize: '11px' } }}
+            width={45}
+            label={{ value: `Temp (${tempUnit})`, angle: -90, position: 'insideLeft', offset: 12, style: { fontSize: '11px', textAnchor: 'middle' } }}
           />
           <YAxis 
             yAxisId="right"
             orientation="right"
             stroke="var(--secondary-color)"
             style={{ fontSize: '12px' }}
-            label={{ value: 'Wind/Rain', angle: 90, position: 'insideRight', style: { fontSize: '11px' } }}
+            width={50}
+            label={{ value: 'Wind/Rain', angle: 90, position: 'insideRight', offset: 12, style: { fontSize: '11px', textAnchor: 'middle' } }}
           />
           <Tooltip 
             contentStyle={{ 

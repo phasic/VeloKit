@@ -1099,9 +1099,9 @@ main {
 
 .weather-chart {
   width: 100%;
-  margin-top: 20px;
+  margin-top: 0;
   margin-bottom: 0;
-  padding: 16px 12px 8px 12px;
+  padding: 12px 8px 8px 8px;
   background-color: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(10px) saturate(120%);
   -webkit-backdrop-filter: blur(10px) saturate(120%);
@@ -1125,6 +1125,7 @@ main {
   display: grid;
   gap: 0.75rem;
   margin-top: var(--spacing);
+  margin-bottom: 0;
 }
 
 .weather-item {

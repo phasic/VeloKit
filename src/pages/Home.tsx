@@ -754,8 +754,8 @@ export function Home({ onQuickRecommendation, weatherOverride }: HomeProps) {
               </div>
             </div>
             {quickViewData.weather.hourly && quickViewData.weather.hourly.length > 0 && (
-              <div id="weather-chart" style={{ marginTop: '24px', scrollMarginTop: '20px' }}>
-                <h4 style={{ marginBottom: '16px', fontSize: '16px', fontWeight: 600 }}>Weather Evolution</h4>
+              <div id="weather-chart" style={{ marginTop: '8px', scrollMarginTop: '20px' }}>
+                <h4 style={{ marginBottom: '8px', fontSize: '16px', fontWeight: 600 }}>Weather Evolution</h4>
                 <WeatherChart weather={quickViewData.weather} config={quickViewData.config} />
               </div>
             )}
