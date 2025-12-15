@@ -26,12 +26,12 @@ export function Welcome({ onGetStarted, onTryDemo }: WelcomeProps) {
         <div className="welcome-icon">
           <img 
             src={`${import.meta.env.BASE_URL}pwa-192x192.png`} 
-            alt="Dress My Ride"
+            alt="VeloKit"
             className="welcome-app-icon"
           />
         </div>
         
-        <h1>Welcome to Dress My Ride</h1>
+        <h1>Welcome to VeloKit</h1>
         
         <p className="welcome-description">
           Get personalized cycling clothing recommendations based on real-time weather conditions at your location.

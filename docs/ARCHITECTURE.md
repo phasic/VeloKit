@@ -2,7 +2,7 @@
 
 ## System Overview
 
-Dress My Ride is a client-side Progressive Web App that provides cycling clothing recommendations based on weather conditions. The app runs entirely in the browser, with no backend server required.
+VeloKit is a client-side Progressive Web App that provides cycling clothing recommendations based on weather conditions. The app runs entirely in the browser, with no backend server required.
 
 ## High-Level Architecture
 

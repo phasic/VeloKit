@@ -11,7 +11,7 @@ export function DevTools({ onWeatherOverride }: DevToolsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLocalhost, setIsLocalhost] = useState(false);
   const [overrides, setOverrides] = useState<Partial<WeatherSummary>>(() => {
-    const saved = localStorage.getItem('dressmyride_dev_overrides');
+    const saved = localStorage.getItem('velokit_dev_overrides');
     return saved ? JSON.parse(saved) : {};
   });
 
@@ -24,9 +24,9 @@ export function DevTools({ onWeatherOverride }: DevToolsProps) {
   useEffect(() => {
     // Save overrides to localStorage
     if (Object.keys(overrides).length > 0) {
-      localStorage.setItem('dressmyride_dev_overrides', JSON.stringify(overrides));
+      localStorage.setItem('velokit_dev_overrides', JSON.stringify(overrides));
     } else {
-      localStorage.removeItem('dressmyride_dev_overrides');
+      localStorage.removeItem('velokit_dev_overrides');
     }
     
     // Notify parent component

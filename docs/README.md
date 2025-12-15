@@ -13,7 +13,7 @@
 
 ## Overview
 
-Dress My Ride is a Progressive Web App that helps cyclists determine what clothing to wear based on current and forecasted weather conditions. The app analyzes temperature, wind speed, and rain probability to provide personalized clothing recommendations for cycling rides.
+VeloKit is a Progressive Web App that helps cyclists determine what clothing to wear based on current and forecasted weather conditions. The app analyzes temperature, wind speed, and rain probability to provide personalized clothing recommendations for cycling rides.
 
 ### Core Functionality
 
@@ -269,10 +269,10 @@ This helps you understand the full range of recommendations and plan for differe
 
 ### GitHub Pages Deployment
 
-- **Base Path**: `/DressMyRide/`
+- **Base Path**: `/VeloKit/`
 - **Branch**: `gh-pages`
 - **Process**: Build → Deploy to `gh-pages` branch
-- **Documentation**: Available at `/DressMyRide/docs/`
+- **Documentation**: Available at `/VeloKit/docs/`
 
 ### Deployment Steps
 

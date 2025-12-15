@@ -1,4 +1,4 @@
-# DressMyRide
+# VeloKit
 
 A mobile-first Progressive Web App that recommends cycling clothing based on weather conditions.
 
@@ -32,7 +32,7 @@ npm install
 npm run dev
 ```
 
-The app will be available at `http://localhost:5173/DressMyRide/`
+The app will be available at `http://localhost:5173/VeloKit/`
 
 ## Build
 
@@ -44,7 +44,7 @@ The built files will be in the `dist` directory.
 
 ## Deployment
 
-The app is configured to deploy to GitHub Pages at `/DressMyRide/`.
+The app is configured to deploy to GitHub Pages at `/VeloKit/`.
 
 ### Quick Deployment (Recommended)
 
@@ -83,7 +83,7 @@ npx gh-pages -d dist
 
 ## Configuration
 
-- **Base path**: `/DressMyRide/` (configured in `vite.config.ts`)
+- **Base path**: `/VeloKit/` (configured in `vite.config.ts`)
 - **API key**: Stored in localStorage (user-provided)
 - **Weather cache**: 30 minutes in localStorage
 - **Units**: Metric (°C / km/h) or Imperial (°F / mph)

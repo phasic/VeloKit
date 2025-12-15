@@ -16,7 +16,7 @@ export function About({ onBack }: AboutProps) {
       <h2>About</h2>
 
       <div className="about-section">
-        <h3>Dress My Ride</h3>
+        <h3>VeloKit</h3>
         <p>
           A mobile-first Progressive Web App that recommends cycling clothes based on weather conditions at your location.
         </p>

@@ -1,21 +1,21 @@
 {
-  "name": "Dress My Ride",
-  "short_name": "Dress My Ride",
+  "name": "VeloKit",
+  "short_name": "VeloKit",
   "description": "Cycling clothing recommendations based on weather",
-  "start_url": "/DressMyRide/",
+  "start_url": "/VeloKit/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/DressMyRide/pwa-192x192.png",
+      "src": "/VeloKit/pwa-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/DressMyRide/pwa-512x512.png",
+      "src": "/VeloKit/pwa-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

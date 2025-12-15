@@ -140,8 +140,8 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
   return (
     <div className="page settings" style={{ paddingBottom: '100px' }}>
       <div className="settings-header">
-        <img src={`${import.meta.env.BASE_URL}pwa-192x192.png`} alt="Dress My Ride" className="settings-app-icon" />
-        <h2>Dress My Ride</h2>
+        <img src={`${import.meta.env.BASE_URL}pwa-192x192.png`} alt="VeloKit" className="settings-app-icon" />
+        <h2>VeloKit</h2>
       </div>
       <h3>Settings</h3>
 

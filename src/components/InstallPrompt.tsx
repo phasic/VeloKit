@@ -254,12 +254,12 @@ export function InstallPrompt({ forceShow: propForceShow = false, onForceShowCha
         <div className="install-prompt-icon">
           <img 
             src={`${import.meta.env.BASE_URL}pwa-192x192.png`} 
-            alt="Dress My Ride"
+            alt="VeloKit"
             className="install-prompt-app-icon"
           />
         </div>
         <div className="install-prompt-text">
-          <strong>Install Dress My Ride</strong>
+          <strong>Install VeloKit</strong>
           <p>Add to your home screen for quick access</p>
         </div>
         <div className="install-prompt-actions">

@@ -1,21 +1,21 @@
 import { WeatherSummary } from '../types';
 
 const STORAGE_KEYS = {
-  API_KEY: 'dressmyride_api_key',
-  WEATHER_CACHE: 'dressmyride_weather_cache',
-  GEOCODE_CACHE: 'dressmyride_geocode_cache',
-  UNITS: 'dressmyride_units',
-  QUICK_VIEW: 'dressmyride_quick_view',
-  THEME: 'dressmyride_theme',
-  DATE_FORMAT: 'dressmyride_date_format',
-  DEFAULT_DURATION: 'dressmyride_default_duration',
-  DEMO_MODE: 'dressmyride_demo_mode',
-  WELCOME_SEEN: 'dressmyride_welcome_seen',
-  INSTALL_PROMPT_DISMISSED: 'dressmyride_install_prompt_dismissed',
-  FORCE_INSTALL_PROMPT: 'dressmyride_force_install_prompt',
-  DISABLE_INSTALL_PROMPT: 'dressmyride_disable_install_prompt',
-  WARDROBES: 'dressmyride_wardrobes',
-  SELECTED_WARDROBE: 'dressmyride_selected_wardrobe',
+  API_KEY: 'velokit_api_key',
+  WEATHER_CACHE: 'velokit_weather_cache',
+  GEOCODE_CACHE: 'velokit_geocode_cache',
+  UNITS: 'velokit_units',
+  QUICK_VIEW: 'velokit_quick_view',
+  THEME: 'velokit_theme',
+  DATE_FORMAT: 'velokit_date_format',
+  DEFAULT_DURATION: 'velokit_default_duration',
+  DEMO_MODE: 'velokit_demo_mode',
+  WELCOME_SEEN: 'velokit_welcome_seen',
+  INSTALL_PROMPT_DISMISSED: 'velokit_install_prompt_dismissed',
+  FORCE_INSTALL_PROMPT: 'velokit_force_install_prompt',
+  DISABLE_INSTALL_PROMPT: 'velokit_disable_install_prompt',
+  WARDROBES: 'velokit_wardrobes',
+  SELECTED_WARDROBE: 'velokit_selected_wardrobe',
 } as const;
 
 export const storage = {

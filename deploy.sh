@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# DressMyRide - GitHub Pages Deployment Script
+# VeloKit - GitHub Pages Deployment Script
 # This script builds the project and deploys it to GitHub Pages
 
 set -e  # Exit on error
@@ -24,5 +24,5 @@ echo "🌐 Deploying to GitHub Pages..."
 npx gh-pages -d dist
 
 echo "✅ Deployment complete!"
-echo "🌍 Your app should be live at: https://phasic.github.io/DressMyRide/"
+echo "🌍 Your app should be live at: https://phasic.github.io/VeloKit/"
 

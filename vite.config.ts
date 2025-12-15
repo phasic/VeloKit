@@ -9,14 +9,14 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: 'DressMyRide',
-        short_name: 'DressMyRide',
+        name: 'VeloKit',
+        short_name: 'VeloKit',
         description: 'Cycling clothing recommendations based on weather',
         theme_color: '#2563eb',
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait-primary',
-        start_url: '/DressMyRide/',
+        start_url: '/VeloKit/',
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -34,8 +34,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        navigateFallback: '/DressMyRide/index.html',
-        navigateFallbackDenylist: [/^\/DressMyRide\/docs/],
+        navigateFallback: '/VeloKit/index.html',
+        navigateFallbackDenylist: [/^\/VeloKit\/docs/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.openweathermap\.org\/.*/i,
@@ -52,6 +52,6 @@ export default defineConfig({
       }
     })
   ],
-  base: '/DressMyRide/'
+  base: '/VeloKit/'
 });
 

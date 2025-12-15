@@ -1,4 +1,4 @@
-# How to Add App Icons to DressMyRide
+# How to Add App Icons to VeloKit
 
 ## Required Icon Files
 
@@ -76,7 +76,7 @@ convert ../icon.png -resize 32x32 favicon.ico
 - **Transparent background**: PNG format supports transparency
 - **Square format**: All icons must be square (1:1 aspect ratio)
 
-## Icon Ideas for DressMyRide
+## Icon Ideas for VeloKit
 
 - 🚴 Bicycle silhouette
 - 👕 Clothing/cycling jersey
