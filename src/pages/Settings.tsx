@@ -146,61 +146,28 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
       <h3>Settings</h3>
 
       <form onSubmit={handleSave}>
-        <div className="form-group">
-          <label htmlFor="apiKey">OpenWeather API Key</label>
-          <input
-            id="apiKey"
-            type="password"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder="Enter your API key"
-            required={!isApiKeyLocked}
-            disabled={isApiKeyLocked}
-            style={{ opacity: isApiKeyLocked ? 0.6 : 1 }}
-          />
-          {isApiKeyLocked && (
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => setShowUnlockConfirm(true)}
-              style={{ marginTop: '8px', width: '100%' }}
-            >
-              Unlock API Key
-            </button>
-          )}
-          {!isApiKeyLocked && (
-            <>
-              {apiKey && apiKey.length > 0 && (
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={handleLockApiKey}
-                  style={{ marginTop: '8px', width: '100%' }}
-                >
-                  Lock API Key
-                </button>
+            <div className="form-group">
+              <label htmlFor="defaultDuration">Default Riding Duration (hours)</label>
+              <input
+                id="defaultDuration"
+                type="number"
+                min="0"
+                max="24"
+                step="0.5"
+                value={defaultDurationInput}
+                onChange={(e) => {
+                  setDefaultDurationInput(e.target.value);
+                }}
+              />
+              {defaultDurationError && (
+                <small style={{ color: 'var(--error-color)', display: 'block', marginTop: '4px' }}>
+                  {defaultDurationError}
+                </small>
               )}
-              <small>
-                Get your API key at{' '}
-              <a
-                href="https://openweathermap.org/api"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                openweathermap.org
-              </a>
-              . <strong>Note:</strong> This app requires One Call API 3.0, which needs a subscription (free tier available). Subscribe at{' '}
-              <a
-                href="https://openweathermap.org/api/one-call-3"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                openweathermap.org/api/one-call-3
-              </a>
-            </small>
-            </>
-          )}
-        </div>
+              {!defaultDurationError && (
+                <small>Default duration for quick view rides (0.5 to 24 hours)</small>
+              )}
+            </div>
 
             <div className="form-group">
               <label htmlFor="units">Units</label>
@@ -239,62 +206,6 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
                 <option value="dark">Dark</option>
               </select>
               <small>Choose your preferred color theme</small>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="defaultDuration">Default Riding Duration (hours)</label>
-              <input
-                id="defaultDuration"
-                type="number"
-                min="0"
-                max="24"
-                step="0.5"
-                value={defaultDurationInput}
-                onChange={(e) => {
-                  setDefaultDurationInput(e.target.value);
-                }}
-              />
-              {defaultDurationError && (
-                <small style={{ color: 'var(--error-color)', display: 'block', marginTop: '4px' }}>
-                  {defaultDurationError}
-                </small>
-              )}
-              {!defaultDurationError && (
-                <small>Default duration for quick view rides (0.5 to 24 hours)</small>
-              )}
-            </div>
-
-            <div className="form-group">
-              <div className="toggle-container">
-                <label htmlFor="demoMode" className="toggle-label">Demo Mode</label>
-                <label className="toggle-switch">
-                  <input
-                    id="demoMode"
-                    type="checkbox"
-                    checked={demoMode}
-                    onChange={(e) => setDemoMode(e.target.checked)}
-                  />
-                  <span className="toggle-slider"></span>
-                </label>
-              </div>
-              <small>Use random weather conditions to try the app without an API key</small>
-              {demoMode && (
-                <div style={{ marginTop: '12px' }}>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => {
-                      // Clear cache to force new random weather on next load
-                      storage.clearWeatherCache();
-                      setSavedMessage('Weather will be randomized on next load!');
-                      setSaved(true);
-                      setTimeout(() => setSaved(false), 2000);
-                    }}
-                  >
-                    Randomize Weather
-                  </button>
-                </div>
-              )}
             </div>
 
             {!isInstalled && (
@@ -337,6 +248,93 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
 
 
         <div className="settings-about-section">
+          <div className="form-group">
+            <div className="toggle-container">
+              <label htmlFor="demoMode" className="toggle-label">Demo Mode</label>
+              <label className="toggle-switch">
+                <input
+                  id="demoMode"
+                  type="checkbox"
+                  checked={demoMode}
+                  onChange={(e) => setDemoMode(e.target.checked)}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+            <small>Use random weather conditions to try the app without an API key</small>
+            {demoMode && (
+              <div style={{ marginTop: '12px' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    // Clear cache to force new random weather on next load
+                    storage.clearWeatherCache();
+                    setSavedMessage('Weather will be randomized on next load!');
+                    setSaved(true);
+                    setTimeout(() => setSaved(false), 2000);
+                  }}
+                >
+                  Randomize Weather
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="form-group">
+            <label htmlFor="apiKey">OpenWeather API Key</label>
+            <input
+              id="apiKey"
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="Enter your API key"
+              required={!isApiKeyLocked}
+              disabled={isApiKeyLocked}
+              style={{ opacity: isApiKeyLocked ? 0.6 : 1 }}
+            />
+            {isApiKeyLocked && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setShowUnlockConfirm(true)}
+                style={{ marginTop: '8px', width: '100%' }}
+              >
+                Unlock API Key
+              </button>
+            )}
+            {!isApiKeyLocked && (
+              <>
+                {apiKey && apiKey.length > 0 && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={handleLockApiKey}
+                    style={{ marginTop: '8px', width: '100%' }}
+                  >
+                    Lock API Key
+                  </button>
+                )}
+                <small>
+                  Get your API key at{' '}
+                <a
+                  href="https://openweathermap.org/api"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  openweathermap.org
+                </a>
+                . <strong>Note:</strong> This app requires One Call API 3.0, which needs a subscription (free tier available). Subscribe at{' '}
+                <a
+                  href="https://openweathermap.org/api/one-call-3"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  openweathermap.org/api/one-call-3
+                </a>
+              </small>
+              </>
+            )}
+          </div>
           <div className="settings-group-item" onClick={() => setShowClearCacheConfirm(true)}>
             <span>Clear Weather Cache</span>
             <span className="arrow">›</span>
