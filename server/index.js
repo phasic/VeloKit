@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -37,6 +38,36 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Rate limiting configuration
+// General API rate limiter: 100 requests per day per IP
+const generalLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, // 24 hours (1 day)
+  max: 100, // Limit each IP to 100 requests per day
+  message: {
+    error: 'Too many requests',
+    message: 'Daily request limit exceeded. You have used all 100 requests for today. Please try again tomorrow.',
+    retryAfter: '24 hours'
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+// Weather forecast uses the same daily limit
+const weatherForecastLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, // 24 hours (1 day)
+  max: 100, // Limit each IP to 100 weather forecast requests per day
+  message: {
+    error: 'Too many weather requests',
+    message: 'Daily request limit exceeded. You have used all 100 requests for today. Please try again tomorrow.',
+    retryAfter: '24 hours'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply general rate limiter to all API routes
+app.use('/api', generalLimiter);
+
 // Get API key from environment variable
 const OPENWEATHER_API_KEY = process.env.OPENWEATHER_API_KEY;
 
@@ -50,7 +81,8 @@ app.get('/health', (req, res) => {
 });
 
 // Proxy endpoint for weather forecast (One Call API 3.0)
-app.get('/api/weather/forecast', async (req, res) => {
+// Apply stricter rate limiting for expensive weather API calls
+app.get('/api/weather/forecast', weatherForecastLimiter, async (req, res) => {
   try {
     if (!OPENWEATHER_API_KEY) {
       return res.status(500).json({ 
@@ -203,6 +235,8 @@ app.get('/api/weather/reverse-geocode', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📡 Weather API proxy ready`);
+  console.log(`🛡️  Rate limiting enabled:`);
+  console.log(`   - All API endpoints: 100 requests per day per IP`);
   if (!OPENWEATHER_API_KEY) {
     console.warn('⚠️  Set OPENWEATHER_API_KEY environment variable to enable API calls');
   }
