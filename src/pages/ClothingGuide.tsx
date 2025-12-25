@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef, Fragment } from 'react';
+import { useTranslation } from 'react-i18next';
 import { recommendClothing } from '../logic/clothingEngine';
 import { WeatherSummary, RideConfig, ClothingItem, WardrobeConfig, TemperatureRange, WindModifier, RainModifier, ClothingItems } from '../types';
 import { storage } from '../utils/storage';
@@ -10,7 +11,9 @@ interface GuideProps {
 }
 
 export function ClothingGuide({}: GuideProps) {
+  const { t } = useTranslation();
   const [units, setUnits] = useState<'metric' | 'imperial'>(storage.getUnits());
+  const isMetric = units === 'metric';
   const [wardrobes, setWardrobes] = useState<WardrobeConfig[]>(() => storage.getWardrobes());
   const [selectedWardrobeId, setSelectedWardrobeId] = useState<string | null>(() => storage.getSelectedWardrobeId());
   const [showMenu, setShowMenu] = useState(false);
@@ -353,7 +356,7 @@ export function ClothingGuide({}: GuideProps) {
     setAddClothingError('');
     
     if (!newClothingName.trim()) {
-      setAddClothingError('Please enter a clothing item name');
+      setAddClothingError(t('wardrobe.pleaseEnterName'));
       return;
     }
 
@@ -369,7 +372,7 @@ export function ClothingGuide({}: GuideProps) {
     if (newClothingType === 'temp') {
       // Validate that at least one temperature field is provided
       if (!newClothingMinTemp.trim() && !newClothingMaxTemp.trim()) {
-        setAddClothingError('Please enter at least one temperature (minimum or maximum)');
+        setAddClothingError(t('wardrobe.pleaseEnterTemp'));
         return;
       }
       
@@ -402,7 +405,7 @@ export function ClothingGuide({}: GuideProps) {
     } else if (newClothingType === 'wind') {
       const minWindSpeed = parseFloat(newClothingMinWind);
       if (isNaN(minWindSpeed)) {
-        setAddClothingError('Please enter a valid wind speed');
+        setAddClothingError(t('wardrobe.pleaseEnterWind'));
         return;
       }
 
@@ -489,7 +492,7 @@ export function ClothingGuide({}: GuideProps) {
 
   const handleCreateWardrobe = () => {
     if (!newWardrobeName.trim()) {
-      alert('Please enter a wardrobe name');
+      alert(t('wardrobe.pleaseEnterWardrobeName'));
       return;
     }
 
@@ -1313,7 +1316,7 @@ export function ClothingGuide({}: GuideProps) {
     // Validate temperature fields if editing a temperature item
     if (editItemType === 'temp') {
       if (!editItemMinTemp.trim() && !editItemMaxTemp.trim()) {
-        setEditItemError('Please enter at least one temperature (minimum or maximum)');
+        setEditItemError(t('wardrobe.pleaseEnterTemp'));
         return;
       }
     }
@@ -2407,7 +2410,7 @@ export function ClothingGuide({}: GuideProps) {
           <div className="current-wardrobe-info">
             <h3 className="current-wardrobe-name">{currentWardrobe.name}</h3>
             {(isDefaultWardrobe || currentWardrobe.isDefault) && (
-              <span className="wardrobe-badge">Default</span>
+              <span className="wardrobe-badge">{t('wardrobe.default')}</span>
             )}
           </div>
           <div className="wardrobe-actions">
@@ -2421,7 +2424,7 @@ export function ClothingGuide({}: GuideProps) {
                     setShowWardrobeSwitcher(!showWardrobeSwitcher);
                     setShowMenu(false); // Close triple dots menu if open
                   }}
-                  aria-label="Switch wardrobe"
+                  aria-label={t('wardrobe.switchWardrobe')}
                 >
                   <span className="switcher-icon">⇄</span>
                 </button>
@@ -2433,7 +2436,7 @@ export function ClothingGuide({}: GuideProps) {
                       right: `${switcherPosition.right}px`,
                     }}
                   >
-                    <div className="switcher-header">Select Wardrobe</div>
+                    <div className="switcher-header">{t('wardrobe.selectWardrobe')}</div>
                     {allWardrobesWithCounts.map(wardrobe => (
                       <button
                         key={wardrobe.id}
@@ -2444,7 +2447,7 @@ export function ClothingGuide({}: GuideProps) {
                         <div className="switcher-item-info">
                           <span className="switcher-item-name">{wardrobe.name}</span>
                           {wardrobe.isDefault && (
-                            <span className="switcher-badge">Default</span>
+                            <span className="switcher-badge">{t('wardrobe.default')}</span>
                           )}
                         </div>
                         <span className="switcher-item-count">{wardrobe.itemCount} items</span>
@@ -2510,7 +2513,7 @@ export function ClothingGuide({}: GuideProps) {
                     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '12px', flexShrink: 0 }}>
                       <path d="M9 12.75V3.75M9 12.75L6.75 10.5M9 12.75L11.25 10.5M3.75 15.75H14.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                    Export
+                    {t('wardrobe.export')}
                   </button>
                 )}
                 <button
@@ -2535,7 +2538,7 @@ export function ClothingGuide({}: GuideProps) {
                   <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '12px', flexShrink: 0 }}>
                     <path d="M9 5.25V14.25M9 5.25L6.75 7.5M9 5.25L11.25 7.5M3.75 2.25H14.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  Import
+                  {t('wardrobe.import')}
                 </button>
                 {!isDefaultWardrobe && (
                   <button
@@ -2550,7 +2553,7 @@ export function ClothingGuide({}: GuideProps) {
                       <path d="M3.75 5.25H14.25M6.75 5.25V3.75C6.75 3.33579 7.08579 3 7.5 3H10.5C10.9142 3 11.25 3.33579 11.25 3.75V5.25M5.25 5.25V14.25C5.25 14.6642 5.58579 15 6 15H12C12.4142 15 12.75 14.6642 12.75 14.25V5.25H5.25Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                       <path d="M7.5 8.25V12.75M10.5 8.25V12.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                    Delete
+                    {t('wardrobe.delete')}
                   </button>
                 )}
               </div>
@@ -2561,22 +2564,22 @@ export function ClothingGuide({}: GuideProps) {
       </div>
 
       <p className="guide-intro">
-        Complete overview of clothing recommendations organized by temperature, wind, and rain conditions.
+        {t('wardrobe.intro')}
       </p>
 
       {/* Empty Wardrobe Message */}
       {isWardrobeEmpty && (
         <div className="empty-wardrobe-message">
           <div className="empty-wardrobe-icon">👕</div>
-          <h3 className="empty-wardrobe-title">Your wardrobe is empty</h3>
+          <h3 className="empty-wardrobe-title">{t('wardrobe.empty')}</h3>
           <p className="empty-wardrobe-text">
-            Start adding clothes by clicking the + button at the bottom of your screen.
+            {t('wardrobe.emptyDesc')}
           </p>
           <button
             className="btn btn-primary empty-wardrobe-button"
             onClick={() => setShowAddFirstClothingModal(true)}
           >
-            Add your first piece of clothing
+            {t('wardrobe.addFirst')}
           </button>
         </div>
       )}
@@ -2590,7 +2593,7 @@ export function ClothingGuide({}: GuideProps) {
             className="section-header clickable"
             onClick={() => toggleSection('uniqueItems')}
           >
-            <h3 className="section-title">All Clothing Items</h3>
+            <h3 className="section-title">{t('wardrobe.allItems')}</h3>
             <span className="section-toggle">
               {openSections.uniqueItems ? '▼' : '▶'}
             </span>
@@ -2599,7 +2602,7 @@ export function ClothingGuide({}: GuideProps) {
           <div className="quick-clothing">
             {allUniqueItems.head.length > 0 && (
               <div className="quick-kit">
-                <h3>Head</h3>
+                <h3>{t('home.head')}</h3>
                 {groupItemsByType(allUniqueItems.head, defaultWeatherForType, defaultConfigForType).map((group, groupIdx) => (
                   <div key={groupIdx} className="item-group">
                     <div className="item-group-icon-wrapper">
@@ -2639,7 +2642,7 @@ export function ClothingGuide({}: GuideProps) {
 
             {allUniqueItems.torso.length > 0 && (
               <div className="quick-kit">
-                <h3>Torso</h3>
+                <h3>{t('home.torso')}</h3>
                 {groupItemsByType(allUniqueItems.torso, defaultWeatherForType, defaultConfigForType).map((group, groupIdx) => (
                   <div key={groupIdx} className="item-group">
                     <div className="item-group-icon-wrapper">
@@ -2659,7 +2662,7 @@ export function ClothingGuide({}: GuideProps) {
 
             {allUniqueItems.legs.length > 0 && (
               <div className="quick-kit">
-                <h3>Legs</h3>
+                <h3>{t('home.legs')}</h3>
                 {groupItemsByType(allUniqueItems.legs, defaultWeatherForType, defaultConfigForType).map((group, groupIdx) => (
                   <div key={groupIdx} className="item-group">
                     <div className="item-group-icon-wrapper">
@@ -2679,7 +2682,7 @@ export function ClothingGuide({}: GuideProps) {
 
             {allUniqueItems.hands.length > 0 && (
               <div className="quick-kit">
-                <h3>Hands</h3>
+                <h3>{t('home.hands')}</h3>
                 {groupItemsByType(allUniqueItems.hands, defaultWeatherForType, defaultConfigForType).map((group, groupIdx) => (
                   <div key={groupIdx} className="item-group">
                     <div className="item-group-icon-wrapper">
@@ -2699,7 +2702,7 @@ export function ClothingGuide({}: GuideProps) {
 
             {allUniqueItems.feet.length > 0 && (
               <div className="quick-kit">
-                <h3>Feet</h3>
+                <h3>{t('home.feet')}</h3>
                 {groupItemsByType(allUniqueItems.feet, defaultWeatherForType, defaultConfigForType).map((group, groupIdx) => (
                   <div key={groupIdx} className="item-group">
                     <div className="item-group-icon-wrapper">
@@ -2728,14 +2731,14 @@ export function ClothingGuide({}: GuideProps) {
             className="section-header clickable"
             onClick={() => toggleSection('temperature')}
           >
-            <h3 className="section-title">Temperature Variations</h3>
+            <h3 className="section-title">{t('wardrobe.temperatureVariations')}</h3>
             <span className="section-toggle">
               {openSections.temperature ? '▼' : '▶'}
             </span>
           </div>
         {openSections.temperature && (
           <>
-            <p className="section-description">Low wind (10 {windUnit}), no rain</p>
+            <p className="section-description">{t('wardrobe.lowWindNoRain', { unit: windUnit })}</p>
             <div className="guide-scenarios guide-scenarios-temperature">
           {tempScenarios
             .map((scenario) => {
@@ -2819,7 +2822,7 @@ export function ClothingGuide({}: GuideProps) {
             className="section-header clickable"
             onClick={() => toggleSection('wind')}
           >
-            <h3 className="section-title">Wind Variations</h3>
+            <h3 className="section-title">{t('wardrobe.windVariations')}</h3>
             <span className="section-toggle">
               {openSections.wind ? '▼' : '▶'}
             </span>
@@ -2897,7 +2900,7 @@ export function ClothingGuide({}: GuideProps) {
             className="section-header clickable"
             onClick={() => toggleSection('rain')}
           >
-            <h3 className="section-title">Rain Variations</h3>
+            <h3 className="section-title">{t('wardrobe.rainVariations')}</h3>
             <span className="section-toggle">
               {openSections.rain ? '▼' : '▶'}
             </span>
@@ -3011,46 +3014,46 @@ export function ClothingGuide({}: GuideProps) {
           setBaseWardrobeId('default');
         }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Create New Wardrobe</h3>
+            <h3>{t('wardrobe.createNew')}</h3>
             <div className="form-group">
-              <label htmlFor="wardrobeName">Wardrobe Name</label>
+              <label htmlFor="wardrobeName">{t('wardrobe.wardrobeName')}</label>
               <input
                 id="wardrobeName"
                 type="text"
                 value={newWardrobeName}
                 onChange={(e) => setNewWardrobeName(e.target.value)}
-                placeholder="Enter wardrobe name"
+                placeholder={t('wardrobe.wardrobeName')}
                 autoFocus
               />
             </div>
             <div className="form-group">
-              <label>Creation Method</label>
+              <label>{t('wardrobe.createFromScratch')}</label>
               <div className="radio-button-group">
                 <button
                   type="button"
                   className={`radio-button-option ${createFromScratch ? 'selected' : ''}`}
                   onClick={() => setCreateFromScratch(true)}
                 >
-                  Start from scratch
+                  {t('wardrobe.createFromScratch')}
                 </button>
                 <button
                   type="button"
                   className={`radio-button-option ${!createFromScratch ? 'selected' : ''}`}
                   onClick={() => setCreateFromScratch(false)}
                 >
-                  Base on existing
+                  {t('wardrobe.createFromExisting')}
                 </button>
               </div>
             </div>
             {!createFromScratch && (
               <div className="form-group">
-                <label htmlFor="baseWardrobe">Base Wardrobe</label>
+                <label htmlFor="baseWardrobe">{t('wardrobe.createFromExisting')}</label>
                 <select
                   id="baseWardrobe"
                   value={baseWardrobeId}
                   onChange={(e) => setBaseWardrobeId(e.target.value)}
                 >
-                  <option value="default">Default Wardrobe</option>
+                  <option value="default">{t('wardrobe.default')} {t('wardrobe.title')}</option>
                   {wardrobes.map(wardrobe => (
                     <option key={wardrobe.id} value={wardrobe.id}>{wardrobe.name}</option>
                   ))}
@@ -3068,14 +3071,14 @@ export function ClothingGuide({}: GuideProps) {
                   setBaseWardrobeId('default');
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
                 className="btn btn-primary"
                 onClick={handleCreateWardrobe}
               >
-                Create
+                {t('wardrobe.create')}
               </button>
             </div>
           </div>
@@ -3086,15 +3089,15 @@ export function ClothingGuide({}: GuideProps) {
       {showDeleteConfirm && (
         <div className="modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Delete Wardrobe?</h3>
-            <p>Are you sure you want to delete "{currentWardrobe.name}"? This action cannot be undone.</p>
+            <h3>{t('wardrobe.deleteWardrobe')}?</h3>
+            <p>{t('wardrobe.deleteWardrobeConfirm', { name: currentWardrobe.name })}</p>
             <div className="modal-actions">
               <button
                 type="button"
                 className="btn btn-secondary"
                 onClick={() => setShowDeleteConfirm(false)}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
@@ -3102,7 +3105,7 @@ export function ClothingGuide({}: GuideProps) {
                 onClick={handleDeleteWardrobe}
                 style={{ backgroundColor: '#FF3B30' }}
               >
-                Delete
+                {t('wardrobe.delete')}
               </button>
             </div>
           </div>
@@ -3116,8 +3119,8 @@ export function ClothingGuide({}: GuideProps) {
           setImportFile(null);
         }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Import Wardrobe</h3>
-            <p>Import wardrobe from "{importFile.name}"? This will create a new wardrobe with the imported configuration.</p>
+            <h3>{t('wardrobe.importWardrobe')}</h3>
+            <p>{t('wardrobe.importConfirm')}</p>
             <div className="modal-actions">
               <button
                 type="button"
@@ -3127,7 +3130,7 @@ export function ClothingGuide({}: GuideProps) {
                   setImportFile(null);
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
@@ -3135,7 +3138,7 @@ export function ClothingGuide({}: GuideProps) {
                 onClick={handleImportWardrobe}
                 style={{ backgroundColor: '#34C759' }}
               >
-                Import
+                {t('wardrobe.import')}
               </button>
             </div>
           </div>
@@ -3149,15 +3152,15 @@ export function ClothingGuide({}: GuideProps) {
           setRenameWardrobeName('');
         }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Rename Wardrobe</h3>
+            <h3>{t('wardrobe.renameWardrobe')}</h3>
             <div className="form-group">
-              <label htmlFor="renameWardrobeName">Wardrobe Name</label>
+              <label htmlFor="renameWardrobeName">{t('wardrobe.wardrobeName')}</label>
               <input
                 id="renameWardrobeName"
                 type="text"
                 value={renameWardrobeName}
                 onChange={(e) => setRenameWardrobeName(e.target.value)}
-                placeholder="Enter wardrobe name"
+                placeholder={t('wardrobe.wardrobeName')}
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -3168,7 +3171,7 @@ export function ClothingGuide({}: GuideProps) {
             </div>
             {isDefaultWardrobe && (
               <p style={{ fontSize: '14px', color: 'var(--secondary-color)', marginTop: '8px' }}>
-                Note: Renaming the default wardrobe will create a copy with the new name.
+                {t('wardrobe.renameNote', { defaultValue: 'Note: Renaming the default wardrobe will create a copy with the new name.' })}
               </p>
             )}
             <div className="modal-actions">
@@ -3180,7 +3183,7 @@ export function ClothingGuide({}: GuideProps) {
                   setRenameWardrobeName('');
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
@@ -3188,7 +3191,7 @@ export function ClothingGuide({}: GuideProps) {
                 onClick={handleRenameWardrobe}
                 disabled={!renameWardrobeName.trim()}
               >
-                Rename
+                {t('wardrobe.rename')}
               </button>
             </div>
           </div>
@@ -3202,8 +3205,8 @@ export function ClothingGuide({}: GuideProps) {
           setItemToDelete(null);
         }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Delete Item?</h3>
-            <p>Are you sure you want to delete "{itemToDelete.name}"? This action cannot be undone.</p>
+            <h3>{t('wardrobe.deleteItem')}?</h3>
+            <p>{t('wardrobe.deleteItemConfirm', { name: itemToDelete.name })}</p>
             <div className="modal-actions">
               <button
                 type="button"
@@ -3213,7 +3216,7 @@ export function ClothingGuide({}: GuideProps) {
                   setItemToDelete(null);
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
@@ -3221,7 +3224,7 @@ export function ClothingGuide({}: GuideProps) {
                 onClick={confirmDeleteItem}
                 style={{ backgroundColor: '#FF3B30' }}
               >
-                Delete
+                {t('wardrobe.delete')}
               </button>
             </div>
           </div>
@@ -3236,10 +3239,10 @@ export function ClothingGuide({}: GuideProps) {
           setEditItemError('');
         }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-            <h3>Edit Clothing Item</h3>
+            <h3>{t('wardrobe.editClothing')}</h3>
             
             <div className="form-group">
-              <label htmlFor="editItemName">Clothing Item Name</label>
+              <label htmlFor="editItemName">{t('wardrobe.itemName')}</label>
               <input
                 id="editItemName"
                 type="text"
@@ -3251,25 +3254,25 @@ export function ClothingGuide({}: GuideProps) {
             </div>
 
             <div className="form-group">
-              <label htmlFor="editBodyPart">Body Part</label>
+              <label htmlFor="editBodyPart">{t('wardrobe.bodyPart')}</label>
               <select
                 id="editBodyPart"
                 value={editItemBodyPart}
                 onChange={(e) => setEditItemBodyPart(e.target.value as typeof editItemBodyPart)}
               >
-                <option value="head">Head</option>
-                <option value="neckFace">Neck / Face</option>
-                <option value="torso">Torso</option>
-                <option value="legs">Legs</option>
-                <option value="hands">Hands</option>
-                <option value="feet">Feet</option>
+                <option value="head">{t('home.head')}</option>
+                <option value="neckFace">{t('home.neckFace')}</option>
+                <option value="torso">{t('home.torso')}</option>
+                <option value="legs">{t('home.legs')}</option>
+                <option value="hands">{t('home.hands')}</option>
+                <option value="feet">{t('home.feet')}</option>
               </select>
             </div>
 
             {editItemType === 'temp' && (
               <>
                 <div className="form-group">
-                  <label htmlFor="editMinTemp">Minimum Temperature (°C)</label>
+                  <label htmlFor="editMinTemp">{t('wardrobe.minimumTemperature')} ({isMetric ? '°C' : '°F'})</label>
                   <input
                     id="editMinTemp"
                     type="number"
@@ -3279,7 +3282,7 @@ export function ClothingGuide({}: GuideProps) {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="editMaxTemp">Maximum Temperature (°C) - Optional</label>
+                  <label htmlFor="editMaxTemp">{t('wardrobe.maximumTemperature')} ({isMetric ? '°C' : '°F'}) - {t('wardrobe.optional')}</label>
                   <input
                     id="editMaxTemp"
                     type="number"
@@ -3293,7 +3296,7 @@ export function ClothingGuide({}: GuideProps) {
 
             {editItemType === 'wind' && (
               <div className="form-group">
-                <label htmlFor="editMinWind">Minimum Wind Speed (km/h)</label>
+                <label htmlFor="editMinWind">{t('wardrobe.minimumWindSpeed')} ({isMetric ? 'km/h' : 'mph'})</label>
                 <input
                   id="editMinWind"
                   type="number"
@@ -3307,7 +3310,7 @@ export function ClothingGuide({}: GuideProps) {
             {editItemType === 'rain' && (
               <>
                 <div className="form-group">
-                  <label htmlFor="editMinRain">Minimum Rain Probability (%)</label>
+                  <label htmlFor="editMinRain">{t('wardrobe.minimumRainProbability')} (%)</label>
                   <input
                     id="editMinRain"
                     type="number"
@@ -3319,7 +3322,7 @@ export function ClothingGuide({}: GuideProps) {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="editMaxRain">Maximum Rain Probability (%) - Optional</label>
+                  <label htmlFor="editMaxRain">{t('wardrobe.maximumRainProbability')} (%) - {t('wardrobe.optional')}</label>
                   <input
                     id="editMaxRain"
                     type="number"
@@ -3331,7 +3334,7 @@ export function ClothingGuide({}: GuideProps) {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="editMaxTempRain">Maximum Temperature (°C) - Optional</label>
+                  <label htmlFor="editMaxTempRain">{t('wardrobe.maximumTemperatureRain')} ({isMetric ? '°C' : '°F'}) - {t('wardrobe.optional')}</label>
                   <input
                     id="editMaxTempRain"
                     type="number"
@@ -3366,14 +3369,14 @@ export function ClothingGuide({}: GuideProps) {
                   setEditItemError('');
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
                 className="btn btn-primary"
                 onClick={handleSaveEditItem}
               >
-                Save Changes
+                {t('common.save')}
               </button>
             </div>
           </div>
@@ -3403,10 +3406,10 @@ export function ClothingGuide({}: GuideProps) {
       {showAddFirstClothingModal && (
         <div className="modal-overlay" onClick={() => setShowAddFirstClothingModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-            <h3>{isWardrobeEmpty ? 'Add Your First Piece of Clothing' : 'Add Clothing Item'}</h3>
+            <h3>{isWardrobeEmpty ? t('wardrobe.addFirst') : t('wardrobe.addClothing')}</h3>
             
             <div className="form-group">
-              <label htmlFor="clothingName">Clothing Item Name</label>
+              <label htmlFor="clothingName">{t('wardrobe.itemName')}</label>
               <input
                 id="clothingName"
                 type="text"
@@ -3418,44 +3421,44 @@ export function ClothingGuide({}: GuideProps) {
             </div>
 
             <div className="form-group">
-              <label htmlFor="bodyPart">Body Part</label>
+              <label htmlFor="bodyPart">{t('wardrobe.bodyPart')}</label>
               <select
                 id="bodyPart"
                 value={newClothingBodyPart}
                 onChange={(e) => setNewClothingBodyPart(e.target.value as typeof newClothingBodyPart)}
               >
-                <option value="head">Head</option>
-                <option value="neckFace">Neck / Face</option>
-                <option value="torso">Torso</option>
-                <option value="legs">Legs</option>
-                <option value="hands">Hands</option>
-                <option value="feet">Feet</option>
+                <option value="head">{t('home.head')}</option>
+                <option value="neckFace">{t('home.neckFace')}</option>
+                <option value="torso">{t('home.torso')}</option>
+                <option value="legs">{t('home.legs')}</option>
+                <option value="hands">{t('home.hands')}</option>
+                <option value="feet">{t('home.feet')}</option>
               </select>
             </div>
 
             <div className="form-group">
-              <label>Type</label>
+              <label>{t('wardrobe.type')}</label>
               <div className="radio-button-group">
                 <button
                   type="button"
                   className={`radio-button-option ${newClothingType === 'temp' ? 'selected' : ''}`}
                   onClick={() => setNewClothingType('temp')}
                 >
-                  Temperature
+                  {t('wardrobe.temperature')}
                 </button>
                 <button
                   type="button"
                   className={`radio-button-option ${newClothingType === 'wind' ? 'selected' : ''}`}
                   onClick={() => setNewClothingType('wind')}
                 >
-                  Wind
+                  {t('wardrobe.wind')}
                 </button>
                 <button
                   type="button"
                   className={`radio-button-option ${newClothingType === 'rain' ? 'selected' : ''}`}
                   onClick={() => setNewClothingType('rain')}
                 >
-                  Rain
+                  {t('wardrobe.rain')}
                 </button>
               </div>
             </div>
@@ -3463,7 +3466,7 @@ export function ClothingGuide({}: GuideProps) {
             {newClothingType === 'temp' && (
               <>
                 <div className="form-group">
-                  <label htmlFor="minTemp">Minimum Temperature (°C)</label>
+                  <label htmlFor="minTemp">{t('wardrobe.minimumTemperature')} ({isMetric ? '°C' : '°F'})</label>
                   <input
                     id="minTemp"
                     type="number"
@@ -3473,7 +3476,7 @@ export function ClothingGuide({}: GuideProps) {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="maxTemp">Maximum Temperature (°C) - Optional</label>
+                  <label htmlFor="maxTemp">{t('wardrobe.maximumTemperature')} ({isMetric ? '°C' : '°F'}) - {t('wardrobe.optional')}</label>
                   <input
                     id="maxTemp"
                     type="number"
@@ -3487,7 +3490,7 @@ export function ClothingGuide({}: GuideProps) {
 
             {newClothingType === 'wind' && (
               <div className="form-group">
-                <label htmlFor="minWind">Minimum Wind Speed (km/h)</label>
+                <label htmlFor="minWind">{t('wardrobe.minimumWindSpeed')} ({isMetric ? 'km/h' : 'mph'})</label>
                 <input
                   id="minWind"
                   type="number"
@@ -3501,7 +3504,7 @@ export function ClothingGuide({}: GuideProps) {
             {newClothingType === 'rain' && (
               <>
                 <div className="form-group">
-                  <label htmlFor="minRain">Minimum Rain Probability (%)</label>
+                  <label htmlFor="minRain">{t('wardrobe.minimumRainProbability')} (%)</label>
                   <input
                     id="minRain"
                     type="number"
@@ -3513,7 +3516,7 @@ export function ClothingGuide({}: GuideProps) {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="maxRain">Maximum Rain Probability (%) - Optional</label>
+                  <label htmlFor="maxRain">{t('wardrobe.maximumRainProbability')} (%) - {t('wardrobe.optional')}</label>
                   <input
                     id="maxRain"
                     type="number"
@@ -3525,7 +3528,7 @@ export function ClothingGuide({}: GuideProps) {
                   />
                 </div>
                 <div className="form-group">
-                  <label htmlFor="maxTempRain">Maximum Temperature (°C) - Optional</label>
+                  <label htmlFor="maxTempRain">{t('wardrobe.maximumTemperatureRain')} ({isMetric ? '°C' : '°F'}) - {t('wardrobe.optional')}</label>
                   <input
                     id="maxTempRain"
                     type="number"
@@ -3569,14 +3572,14 @@ export function ClothingGuide({}: GuideProps) {
                   setAddClothingError('');
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
                 className="btn btn-primary"
                 onClick={handleAddFirstClothing}
               >
-                Add Clothing
+                {t('wardrobe.addClothing')}
               </button>
             </div>
           </div>

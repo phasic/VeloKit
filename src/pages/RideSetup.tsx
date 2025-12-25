@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RideConfig, Location } from '../types';
 import { storage } from '../utils/storage';
 import { geocodeCity } from '../services/weatherService';
@@ -9,6 +10,7 @@ interface RideSetupProps {
 }
 
 export function RideSetup({ onContinue }: RideSetupProps) {
+  const { t } = useTranslation();
   const [locationType, setLocationType] = useState<'current' | 'city' | 'favorites'>('current');
   const [cityInputType, setCityInputType] = useState<'search' | 'map'>('search');
   const [city, setCity] = useState('');
@@ -57,7 +59,7 @@ export function RideSetup({ onContinue }: RideSetupProps) {
 
   const handleSearch = async () => {
     if (!city.trim()) {
-      setError('Please enter a city name');
+      setError(t('setup.pleaseEnterCity'));
       return;
     }
     setSearching(true);
@@ -67,7 +69,7 @@ export function RideSetup({ onContinue }: RideSetupProps) {
       setSelectedLocation(location);
       setCity(location.city || city); // Update city with the found city name
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to find city');
+      setError(err instanceof Error ? err.message : t('setup.failedToFindCity'));
       setSelectedLocation(null);
     } finally {
       setSearching(false);
@@ -85,7 +87,7 @@ export function RideSetup({ onContinue }: RideSetupProps) {
       if (locationType === 'current') {
         // Get current location
         if (!navigator.geolocation) {
-          throw new Error('Geolocation is not supported by your browser');
+          throw new Error(t('setup.geolocationNotSupported'));
         }
 
         const position = await new Promise<GeolocationPosition>((resolve, reject) => {
@@ -100,14 +102,14 @@ export function RideSetup({ onContinue }: RideSetupProps) {
       } else if (locationType === 'favorites') {
         // Favorites selection
         if (!selectedLocation) {
-          throw new Error('Please select a favorite location');
+          throw new Error(t('setup.selectLocation'));
         }
         location = selectedLocation;
       } else {
         // City input - either search or map
         if (cityInputType === 'map') {
           if (!mapLocation) {
-            throw new Error('Please select a location on the map');
+            throw new Error(t('setup.pleaseSelectLocation'));
           }
           location = mapLocation;
         } else {
@@ -135,11 +137,11 @@ export function RideSetup({ onContinue }: RideSetupProps) {
 
   return (
     <div className="page setup">
-      <h2>Ride Setup</h2>
+      <h2>{t('setup.title')}</h2>
       
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label>Location</label>
+          <label>{t('setup.location')}</label>
           <div className="location-selector">
             <button
               type="button"
@@ -151,8 +153,8 @@ export function RideSetup({ onContinue }: RideSetupProps) {
             >
               <div className="location-option-icon">📍</div>
               <div className="location-option-content">
-                <div className="location-option-title">Use current location</div>
-                <div className="location-option-subtitle">GPS coordinates</div>
+                <div className="location-option-title">{t('setup.currentLocation')}</div>
+                <div className="location-option-subtitle">{t('setup.currentLocationSubtitle')}</div>
               </div>
               <div className="location-option-check">
                 {locationType === 'current' && '✓'}
@@ -168,8 +170,8 @@ export function RideSetup({ onContinue }: RideSetupProps) {
             >
               <div className="location-option-icon">🏙️</div>
               <div className="location-option-content">
-                <div className="location-option-title">Enter city</div>
-                <div className="location-option-subtitle">Search by name</div>
+                <div className="location-option-title">{t('setup.enterCity')}</div>
+                <div className="location-option-subtitle">{t('setup.enterCitySubtitle')}</div>
               </div>
               <div className="location-option-check">
                 {locationType === 'city' && '✓'}
@@ -186,8 +188,12 @@ export function RideSetup({ onContinue }: RideSetupProps) {
               >
                 <div className="location-option-icon">⭐</div>
                 <div className="location-option-content">
-                  <div className="location-option-title">Favorites</div>
-                  <div className="location-option-subtitle">{favorites.length} saved location{favorites.length !== 1 ? 's' : ''}</div>
+                  <div className="location-option-title">{t('setup.favorites')}</div>
+                  <div className="location-option-subtitle">
+                    {favorites.length === 1 
+                      ? t('setup.favoritesSubtitle', { count: favorites.length })
+                      : t('setup.favoritesSubtitlePlural', { count: favorites.length })}
+                  </div>
                 </div>
                 <div className="location-option-check">
                   {locationType === 'favorites' && '✓'}
@@ -211,7 +217,7 @@ export function RideSetup({ onContinue }: RideSetupProps) {
                         type="button"
                         onClick={(e) => toggleFavorite(fav, e)}
                         className="favorite-star"
-                        aria-label="Remove from favorites"
+                        aria-label={t('setup.removeFromFavorites')}
                       >
                         ⭐
                       </button>
@@ -232,7 +238,7 @@ export function RideSetup({ onContinue }: RideSetupProps) {
                     setSelectedLocation(null);
                   }}
                 >
-                  Search by name
+                  {t('setup.searchByName')}
                 </button>
                 <button
                   type="button"
@@ -242,7 +248,7 @@ export function RideSetup({ onContinue }: RideSetupProps) {
                     setSelectedLocation(null);
                   }}
                 >
-                  Select on map
+                  {t('setup.selectOnMap')}
                 </button>
               </div>
               {cityInputType === 'search' ? (
@@ -260,7 +266,7 @@ export function RideSetup({ onContinue }: RideSetupProps) {
                         handleSearch();
                       }
                     }}
-                    placeholder="e.g., London, New York"
+                    placeholder={t('setup.cityPlaceholder')}
                     style={{ width: '100%', marginBottom: '8px' }}
                   />
                   <button
@@ -270,7 +276,7 @@ export function RideSetup({ onContinue }: RideSetupProps) {
                     disabled={searching || !city.trim()}
                     style={{ width: '100%', marginBottom: '8px' }}
                   >
-                    {searching ? 'Searching...' : 'Search'}
+                    {searching ? t('setup.searching') : t('setup.search')}
                   </button>
                   {selectedLocation && (
                     <div className="search-result" style={{ 
@@ -291,7 +297,7 @@ export function RideSetup({ onContinue }: RideSetupProps) {
                         style={{
                           color: storage.isFavoriteLocation(selectedLocation) ? '#FFD700' : 'var(--secondary-color)'
                         }}
-                        aria-label={storage.isFavoriteLocation(selectedLocation) ? 'Remove from favorites' : 'Add to favorites'}
+                        aria-label={storage.isFavoriteLocation(selectedLocation) ? t('setup.removeFromFavorites') : t('setup.addToFavorites')}
                       >
                         {storage.isFavoriteLocation(selectedLocation) ? '⭐' : '☆'}
                       </button>
@@ -317,7 +323,7 @@ export function RideSetup({ onContinue }: RideSetupProps) {
                         style={{
                           color: storage.isFavoriteLocation(mapLocation) ? '#FFD700' : 'var(--secondary-color)'
                         }}
-                        aria-label={storage.isFavoriteLocation(mapLocation) ? 'Remove from favorites' : 'Add to favorites'}
+                        aria-label={storage.isFavoriteLocation(mapLocation) ? t('setup.removeFromFavorites') : t('setup.addToFavorites')}
                       >
                         {storage.isFavoriteLocation(mapLocation) ? '⭐' : '☆'}
                       </button>
@@ -330,7 +336,7 @@ export function RideSetup({ onContinue }: RideSetupProps) {
         </div>
 
         <div className="form-group">
-          <label htmlFor="startTime">Start time</label>
+          <label htmlFor="startTime">{t('setup.startTime')}</label>
           <input
             id="startTime"
             type="datetime-local"
@@ -341,7 +347,7 @@ export function RideSetup({ onContinue }: RideSetupProps) {
         </div>
 
         <div className="form-group">
-          <label htmlFor="duration">Duration (hours)</label>
+          <label htmlFor="duration">{t('setup.duration')}</label>
           <input
             id="duration"
             type="number"
@@ -358,7 +364,7 @@ export function RideSetup({ onContinue }: RideSetupProps) {
 
         <div className="form-actions">
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Loading...' : 'Get Recommendation'}
+            {loading ? t('common.loading') : t('setup.getRecommendation')}
           </button>
         </div>
       </form>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Page } from '../types';
 
 interface BottomTabBarProps {
@@ -9,6 +10,8 @@ interface BottomTabBarProps {
 }
 
 export function BottomTabBar({ currentPage, onHome, onCustom, onGuide, customLoading = false }: BottomTabBarProps) {
+  const { t } = useTranslation();
+  
   return (
     <div className="ios-tab-bar">
       <button
@@ -23,11 +26,11 @@ export function BottomTabBar({ currentPage, onHome, onCustom, onGuide, customLoa
         >
           <img 
             src={`${import.meta.env.BASE_URL}flash.png`} 
-            alt="Quick view" 
+            alt={t('home.quickView')} 
             className="ios-tab-icon"
           />
         </div>
-        <span className="ios-tab-label">Quick view</span>
+        <span className="ios-tab-label">{t('home.quickView')}</span>
       </button>
       <button
         className={`ios-tab-item ${(currentPage === 'setup' || currentPage === 'recommendation') ? 'active' : ''}`}
@@ -42,11 +45,11 @@ export function BottomTabBar({ currentPage, onHome, onCustom, onGuide, customLoa
         >
           <img 
             src={`${import.meta.env.BASE_URL}equalizer.png`} 
-            alt="Custom" 
+            alt={t('home.custom')} 
             className="ios-tab-icon"
           />
         </div>
-        <span className="ios-tab-label">{customLoading ? 'Loading...' : 'Custom'}</span>
+        <span className="ios-tab-label">{customLoading ? t('common.loading') : t('home.custom')}</span>
       </button>
       <button
         className={`ios-tab-item ${currentPage === 'guide' ? 'active' : ''}`}
@@ -60,11 +63,11 @@ export function BottomTabBar({ currentPage, onHome, onCustom, onGuide, customLoa
         >
           <img 
             src={`${import.meta.env.BASE_URL}wardrobe.png`} 
-            alt="Wardrobe" 
+            alt={t('home.wardrobe')} 
             className="ios-tab-icon"
           />
         </div>
-        <span className="ios-tab-label">Wardrobe</span>
+        <span className="ios-tab-label">{t('home.wardrobe')}</span>
       </button>
     </div>
   );

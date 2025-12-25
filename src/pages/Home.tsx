@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, Fragment, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Location, RideConfig, WeatherSummary, ClothingRecommendation } from '../types';
 import { storage } from '../utils/storage';
 import { fetchWeatherForecast, reverseGeocode } from '../services/weatherService';
@@ -23,6 +24,7 @@ interface HomeProps {
 }
 
 export function Home({ onQuickRecommendation, onNavigateToWardrobe, onNavigateToCustom, weatherOverride }: HomeProps) {
+  const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [quickViewData, setQuickViewData] = useState<{
     weather: WeatherSummary;
@@ -396,61 +398,61 @@ export function Home({ onQuickRecommendation, onNavigateToWardrobe, onNavigateTo
       {quickViewLoading && (
         <div className="loading">
           <div className="spinner"></div>
-          <p>Loading weather data...</p>
+          <p>{t('home.loadingWeather')}</p>
         </div>
       )}
 
       {error && !quickViewData && (
         <div className="location-error-card">
           <div className="location-error-icon">📍</div>
-          <h3 className="location-error-title">Location Access Needed</h3>
+          <h3 className="location-error-title">{t('home.locationAccessNeeded')}</h3>
           {error === 'permission-denied' && (
             <>
               <p className="location-error-message">
-                To provide quick weather recommendations, VeloKit needs access to your location.
+                {t('home.locationMessage')}
               </p>
               <p className="location-error-instruction">
-                Please enable location services in your browser settings, or use the Custom tab to enter a location manually.
+                {t('home.locationInstruction')}
               </p>
             </>
           )}
           {error === 'geolocation-not-supported' && (
             <>
               <p className="location-error-message">
-                Your browser doesn't support location services.
+                {t('home.geolocationNotSupported')}
               </p>
               <p className="location-error-instruction">
-                Use the Custom tab to enter a location manually for weather recommendations.
+                {t('home.geolocationNotSupportedDesc')}
               </p>
             </>
           )}
           {error === 'position-unavailable' && (
             <>
               <p className="location-error-message">
-                Unable to determine your location. This might be due to GPS issues or network problems.
+                {t('home.positionUnavailable')}
               </p>
               <p className="location-error-instruction">
-                Try again later, or use the Custom tab to enter a location manually.
+                {t('home.positionUnavailableDesc')}
               </p>
             </>
           )}
           {error === 'timeout' && (
             <>
               <p className="location-error-message">
-                Location request timed out. This might be due to slow GPS or network issues.
+                {t('home.timeout')}
               </p>
               <p className="location-error-instruction">
-                Try again, or use the Custom tab to enter a location manually.
+                {t('home.timeoutDesc')}
               </p>
             </>
           )}
           {(error === 'load-failed' || error === 'location-error') && (
             <>
               <p className="location-error-message">
-                Unable to load location-based recommendations.
+                {t('home.loadFailed')}
               </p>
               <p className="location-error-instruction">
-                Use the Custom tab to enter a location manually for weather recommendations.
+                {t('home.loadFailedDesc')}
               </p>
             </>
           )}
@@ -463,14 +465,14 @@ export function Home({ onQuickRecommendation, onNavigateToWardrobe, onNavigateTo
               }}
               style={{ marginRight: '12px' }}
             >
-              Try Again
+              {t('home.tryAgain')}
             </button>
             {onNavigateToCustom && (
               <button
                 className="btn btn-secondary"
                 onClick={onNavigateToCustom}
               >
-                Use Custom Tab
+                {t('home.useCustomTab')}
               </button>
             )}
           </div>
@@ -494,7 +496,7 @@ export function Home({ onQuickRecommendation, onNavigateToWardrobe, onNavigateTo
                 className={`pull-to-refresh-icon ${pullToRefresh.isRefreshing ? 'spinning' : ''}`}
               />
               <span className="pull-to-refresh-text">
-                {pullToRefresh.isRefreshing ? 'Refreshing...' : 'Pull to refresh'}
+                {pullToRefresh.isRefreshing ? t('home.refreshing') : t('home.pullToRefresh')}
               </span>
             </div>
           )}
@@ -612,7 +614,7 @@ export function Home({ onQuickRecommendation, onNavigateToWardrobe, onNavigateTo
 
           <div className="quick-clothing">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0 }}>What to wear</h3>
+              <h3 style={{ margin: 0 }}>{t('home.whatToWear')}</h3>
               <button
                 className="refresh-btn desktop-only"
                 onClick={loadQuickView}
@@ -625,38 +627,38 @@ export function Home({ onQuickRecommendation, onNavigateToWardrobe, onNavigateTo
                   alt="Refresh" 
                   className="refresh-btn-icon"
                 />
-                <span>Refresh</span>
+                <span>{t('home.refresh')}</span>
               </button>
             </div>
             {isWardrobeEmpty ? (
               <div className="empty-wardrobe-quick-view-message">
                 <div className="empty-wardrobe-icon">👕</div>
-                <h3 className="empty-wardrobe-title">Your wardrobe is empty</h3>
+                <h3 className="empty-wardrobe-title">{t('home.wardrobeEmpty')}</h3>
                 <p className="empty-wardrobe-text">
-                  Start adding clothing items or switch to a different wardrobe.
+                  {t('home.wardrobeEmptyDesc')}
                 </p>
                 {onNavigateToWardrobe && (
                   <button 
                     className="btn btn-primary empty-wardrobe-button"
                     onClick={onNavigateToWardrobe}
                   >
-                    Go to Wardrobe
+                    {t('home.goToWardrobe')}
                   </button>
                 )}
               </div>
             ) : isRecommendationEmpty ? (
               <div className="empty-wardrobe-quick-view-message">
                 <div className="empty-wardrobe-icon">🌤️</div>
-                <h3 className="empty-wardrobe-title">No suitable clothing for this weather</h3>
+                <h3 className="empty-wardrobe-title">{t('home.noSuitableClothing')}</h3>
                 <p className="empty-wardrobe-text">
-                  Your wardrobe doesn't have items suitable for these weather conditions. Add more clothing items to cover different temperatures, wind speeds, or rain conditions.
+                  {t('home.noSuitableClothingDesc')}
                 </p>
                 {onNavigateToWardrobe && (
                   <button 
                     className="btn btn-primary empty-wardrobe-button"
                     onClick={onNavigateToWardrobe}
                   >
-                    Go to Wardrobe
+                    {t('home.goToWardrobe')}
                   </button>
                 )}
               </div>
@@ -939,13 +941,13 @@ export function Home({ onQuickRecommendation, onNavigateToWardrobe, onNavigateTo
                 </span>
               </div>
               <div className="weather-item">
-                <span className="label">Duration:</span>
+                <span className="label">{t('home.duration')}:</span>
                 <span className="value">
-                  {quickViewData.config.durationHours} {quickViewData.config.durationHours === 1 ? 'hour' : 'hours'}
+                  {quickViewData.config.durationHours} {quickViewData.config.durationHours === 1 ? t('home.hour') : t('home.hours')}
                 </span>
               </div>
               <div className="weather-item location-item">
-                <span className="label">Location:</span>
+                <span className="label">{t('home.location')}:</span>
                 <span className="value">
                   {quickViewData.location.city ? (
                     <div>

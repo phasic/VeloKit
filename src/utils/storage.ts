@@ -18,6 +18,7 @@ const STORAGE_KEYS = {
   SELECTED_WARDROBE: 'velokit_selected_wardrobe',
   FAVORITE_LOCATIONS: 'velokit_favorite_locations',
   API_SERVER: 'velokit_api_server', // 'local' or 'production'
+  LANGUAGE: 'velokit_language', // 'en', 'nl', 'fr'
 } as const;
 
 export const storage = {
@@ -318,6 +319,14 @@ export const storage = {
 
       setApiServer: (server: 'local' | 'production'): void => {
         localStorage.setItem(STORAGE_KEYS.API_SERVER, server);
+      },
+
+      getLanguage: (): string | null => {
+        return localStorage.getItem(STORAGE_KEYS.LANGUAGE);
+      },
+
+      setLanguage: (language: string): void => {
+        localStorage.setItem(STORAGE_KEYS.LANGUAGE, language);
       },
     };
 

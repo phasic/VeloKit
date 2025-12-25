@@ -1,4 +1,5 @@
 import { Fragment } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ClothingRecommendation, WeatherSummary, RideConfig, Location } from '../types';
 import { storage } from '../utils/storage';
 import { formatDateTime } from '../utils/dateFormat';
@@ -19,6 +20,7 @@ export function Recommendation({
   location,
   onBack,
 }: RecommendationProps) {
+  const { t } = useTranslation();
   const isMetric = config.units === 'metric';
   const tempUnit = isMetric ? '°C' : '°F';
   const windUnit = isMetric ? 'km/h' : 'mph';
@@ -222,14 +224,14 @@ export function Recommendation({
 
         <div className="quick-clothing">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ margin: 0 }}>What to wear</h3>
+            <h3 style={{ margin: 0 }}>{t('home.whatToWear')}</h3>
             <button
               className="refresh-btn"
               onClick={onBack}
-              aria-label="New recommendation"
+              aria-label={t('home.newRecommendation')}
               style={{ margin: 0 }}
             >
-              <span>New recommendation</span>
+              <span>{t('home.newRecommendation')}</span>
             </button>
           </div>
           {recommendation.head.length > 0 && (
@@ -507,13 +509,13 @@ export function Recommendation({
               </span>
             </div>
             <div className="weather-item">
-              <span className="label">Duration:</span>
+              <span className="label">{t('recommendation.duration')}:</span>
               <span className="value">
-                {config.durationHours} {config.durationHours === 1 ? 'hour' : 'hours'}
+                {config.durationHours} {config.durationHours === 1 ? t('home.hour') : t('home.hours')}
               </span>
             </div>
             <div className="weather-item location-item">
-              <span className="label">Location:</span>
+              <span className="label">{t('recommendation.location')}:</span>
               <span className="value">
                 {location.city || `${location.lat.toFixed(2)}, ${location.lon.toFixed(2)}`}
               </span>

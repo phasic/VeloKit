@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import './About.css';
 
 interface AboutProps {
@@ -6,6 +7,8 @@ interface AboutProps {
 }
 
 export function About({ onBack }: AboutProps) {
+  const { t } = useTranslation();
+  
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
@@ -13,12 +16,12 @@ export function About({ onBack }: AboutProps) {
 
   return (
     <div className="page about" style={{ paddingBottom: '100px' }}>
-      <h2>About</h2>
+      <h2>{t('about.title')}</h2>
 
       <div className="about-section">
         <h3>VeloKit</h3>
         <p>
-          A mobile-first Progressive Web App that recommends cycling clothes based on weather conditions at your location.
+          {t('about.description')}
         </p>
       </div>
 
@@ -114,7 +117,7 @@ export function About({ onBack }: AboutProps) {
 
       <div className="about-sticky-actions">
         <button className="btn btn-secondary" onClick={onBack}>
-          Back
+          {t('common.back')}
         </button>
       </div>
     </div>

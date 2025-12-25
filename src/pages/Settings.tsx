@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { storage } from '../utils/storage';
 import { isAppInstalled } from '../components/InstallPrompt';
 import { DevTools } from '../components/DevTools';
@@ -11,6 +12,7 @@ interface SettingsProps {
 }
 
 export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverride }: SettingsProps) {
+  const { t, i18n } = useTranslation();
   const [units, setUnits] = useState<'metric' | 'imperial'>(() => storage.getUnits());
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() => storage.getTheme());
   const [dateFormat, setDateFormat] = useState<'custom' | 'system'>(() => storage.getDateFormat());
@@ -23,6 +25,7 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
   const [saved, setSaved] = useState(false);
   const [savedMessage, setSavedMessage] = useState<string>('');
   const [showClearCacheConfirm, setShowClearCacheConfirm] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState(() => i18n.language);
 
   useEffect(() => {
     storage.setUnits(units);
@@ -65,6 +68,12 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
     setIsInstalled(isAppInstalled());
   }, []);
 
+  const handleLanguageChange = (lang: string) => {
+    i18n.changeLanguage(lang);
+    setCurrentLanguage(lang);
+    storage.setLanguage(lang);
+  };
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -83,7 +92,7 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
     storage.setDefaultDuration(defaultDuration);
     applyTheme(theme);
     
-    setSavedMessage('Settings saved!');
+    setSavedMessage(t('settings.saved'));
     setSaved(true);
     setTimeout(() => {
       setSaved(false);
@@ -109,7 +118,7 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
   const handleClearCache = () => {
     storage.clearWeatherCache();
     setShowClearCacheConfirm(false);
-    setSavedMessage('Cache cleared!');
+    setSavedMessage(t('settings.cacheCleared'));
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -120,11 +129,25 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
         <img src={`${import.meta.env.BASE_URL}pwa-192x192.png`} alt="VeloKit" className="settings-app-icon" />
         <h2>VeloKit</h2>
       </div>
-      <h3>Settings</h3>
+      <h3>{t('settings.title')}</h3>
 
       <form onSubmit={handleSave}>
             <div className="form-group">
-              <label htmlFor="defaultDuration">Default Riding Duration (hours)</label>
+              <label htmlFor="language">{t('settings.language')}</label>
+              <select
+                id="language"
+                value={currentLanguage}
+                onChange={(e) => handleLanguageChange(e.target.value)}
+              >
+                <option value="en">English</option>
+                <option value="nl">Nederlands</option>
+                <option value="fr">Français</option>
+              </select>
+              <small>{t('settings.languageDesc')}</small>
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="defaultDuration">{t('settings.defaultDuration')}</label>
               <input
                 id="defaultDuration"
                 type="number"
@@ -142,47 +165,47 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
                 </small>
               )}
               {!defaultDurationError && (
-                <small>Default duration for quick view rides (0.5 to 24 hours)</small>
+                <small>{t('settings.defaultDurationDesc')}</small>
               )}
             </div>
 
             <div className="form-group">
-              <label htmlFor="units">Units</label>
+              <label htmlFor="units">{t('settings.units')}</label>
               <select
                 id="units"
                 value={units}
                 onChange={(e) => setUnits(e.target.value as 'metric' | 'imperial')}
               >
-                <option value="metric">Metric (°C / km/h)</option>
-                <option value="imperial">Imperial (°F / mph)</option>
+                <option value="metric">{t('settings.metric')}</option>
+                <option value="imperial">{t('settings.imperial')}</option>
               </select>
             </div>
 
             <div className="form-group">
-              <label htmlFor="dateFormat">Date/Time Format</label>
+              <label htmlFor="dateFormat">{t('settings.dateFormat')}</label>
               <select
                 id="dateFormat"
                 value={dateFormat}
                 onChange={(e) => setDateFormat(e.target.value as 'custom' | 'system')}
               >
-                <option value="system">System (e.g., Dec 15, 2:30 PM)</option>
-                <option value="custom">Custom (e.g., Saturday 13 Dec, 20:13)</option>
+                <option value="system">{t('settings.dateFormatSystem')}</option>
+                <option value="custom">{t('settings.dateFormatCustom')}</option>
               </select>
-              <small>Choose your preferred date and time format</small>
+              <small>{t('settings.dateFormatDesc')}</small>
             </div>
 
             <div className="form-group">
-              <label htmlFor="theme">Theme</label>
+              <label htmlFor="theme">{t('settings.theme')}</label>
               <select
                 id="theme"
                 value={theme}
                 onChange={(e) => setTheme(e.target.value as 'light' | 'dark' | 'system')}
               >
-                <option value="system">System</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
+                <option value="system">{t('settings.themeSystem')}</option>
+                <option value="light">{t('settings.themeLight')}</option>
+                <option value="dark">{t('settings.themeDark')}</option>
               </select>
-              <small>Choose your preferred color theme</small>
+              <small>{t('settings.themeDesc')}</small>
             </div>
 
             {!isInstalled && (
@@ -197,10 +220,10 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
                   }}
                   style={{ width: '100%', marginBottom: '0.5rem' }}
                 >
-                  Install App
+                  {t('settings.installApp')}
                 </button>
                 <small style={{ display: 'block', marginTop: '0.5rem', marginBottom: '1rem' }}>
-                  The app will be installed as a Progressive Web App (PWA) on your device
+                  {t('settings.installAppDesc')}
                 </small>
               </div>
             )}
@@ -208,7 +231,7 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
             {!isInstalled && (
               <div className="form-group">
                 <div className="toggle-container">
-                  <label htmlFor="disableInstallPrompt" className="toggle-label">Disable Weekly Reminder Install Prompt</label>
+                  <label htmlFor="disableInstallPrompt" className="toggle-label">{t('settings.disableInstallPrompt')}</label>
                   <label className="toggle-switch">
                     <input
                       id="disableInstallPrompt"
@@ -219,7 +242,7 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
                     <span className="toggle-slider"></span>
                   </label>
                 </div>
-                <small>Never show the weekly reminder install prompt to add this app to your home screen</small>
+                <small>{t('settings.disableInstallPromptDesc')}</small>
               </div>
             )}
 
@@ -227,7 +250,7 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
         <div className="settings-about-section">
           <div className="form-group">
             <div className="toggle-container">
-              <label htmlFor="demoMode" className="toggle-label">Demo Mode</label>
+              <label htmlFor="demoMode" className="toggle-label">{t('settings.demoMode')}</label>
               <label className="toggle-switch">
                 <input
                   id="demoMode"
@@ -238,7 +261,7 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
                 <span className="toggle-slider"></span>
               </label>
             </div>
-            <small>Use random weather conditions to try the app without connecting to the weather API</small>
+            <small>{t('settings.demoModeDesc')}</small>
             {demoMode && (
               <div style={{ marginTop: '12px' }}>
                 <button
@@ -247,18 +270,18 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
                   onClick={() => {
                     // Clear cache to force new random weather on next load
                     storage.clearWeatherCache();
-                    setSavedMessage('Weather will be randomized on next load!');
+                    setSavedMessage(t('settings.randomizeWeatherDesc'));
                     setSaved(true);
                     setTimeout(() => setSaved(false), 2000);
                   }}
                 >
-                  Randomize Weather
+                  {t('settings.randomizeWeather')}
                 </button>
               </div>
             )}
           </div>
           <div className="settings-group-item" onClick={() => setShowClearCacheConfirm(true)}>
-            <span>Clear Weather Cache</span>
+            <span>{t('settings.clearCache')}</span>
             <span className="arrow">›</span>
           </div>
           <button
@@ -266,7 +289,7 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
             className="settings-about-btn"
             onClick={onAbout}
           >
-            <span>About</span>
+            <span>{t('common.about')}</span>
             <span className="settings-about-arrow">›</span>
           </button>
         </div>
@@ -280,32 +303,32 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
           </div>
         )}
         <button type="button" className="btn btn-secondary" onClick={onBack}>
-          Back
+          {t('common.back')}
         </button>
         <button type="button" className="btn btn-primary" onClick={(e) => { e.preventDefault(); handleSave(e); }}>
-          Save
+          {t('common.save')}
         </button>
       </div>
 
       {showClearCacheConfirm && (
         <div className="modal-overlay" onClick={() => setShowClearCacheConfirm(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Clear Weather Cache?</h3>
-            <p>This will clear all cached weather data. The app will fetch fresh data on the next request.</p>
+            <h3>{t('settings.clearCache')}?</h3>
+            <p>{t('settings.clearCacheConfirm')}</p>
             <div className="modal-actions">
               <button
                 type="button"
                 className="btn btn-secondary"
                 onClick={() => setShowClearCacheConfirm(false)}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
                 className="btn btn-primary"
                 onClick={handleClearCache}
               >
-                Clear Cache
+                {t('settings.clearCache')}
               </button>
             </div>
           </div>

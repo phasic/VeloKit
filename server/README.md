@@ -68,3 +68,4 @@ Reverse geocode coordinates to city name.
 - The server validates all requests before proxying to OpenWeather API
 - CORS is enabled for the frontend domain
 
+

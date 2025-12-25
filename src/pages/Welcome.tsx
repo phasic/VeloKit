@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { storage } from '../utils/storage';
 import './Welcome.css';
 
@@ -7,6 +8,8 @@ interface WelcomeProps {
 }
 
 export function Welcome({ onGetStarted, onTryDemo }: WelcomeProps) {
+  const { t } = useTranslation();
+  
   const handleGetStarted = () => {
     // Mark welcome as seen
     storage.setWelcomeSeen(true);
@@ -31,77 +34,77 @@ export function Welcome({ onGetStarted, onTryDemo }: WelcomeProps) {
           />
         </div>
         
-        <h1>Welcome to VeloKit</h1>
+        <h1>{t('welcome.title')}</h1>
         
         <p className="welcome-description">
-          Get personalized cycling clothing recommendations based on real-time weather conditions at your location.
+          {t('welcome.description')}
         </p>
 
         <div className="welcome-info">
           <div className="welcome-info-item">
             <span className="welcome-info-icon">🌡️</span>
             <div>
-              <strong>Weather-based recommendations</strong>
-              <p>Get clothing suggestions based on temperature, wind, and rain</p>
+              <strong>{t('welcome.weatherBased')}</strong>
+              <p>{t('welcome.weatherBasedDesc')}</p>
             </div>
           </div>
           
           <div className="welcome-info-item">
             <span className="welcome-info-icon">📍</span>
             <div>
-              <strong>Location-aware</strong>
-              <p>Uses your current location or any city you choose</p>
+              <strong>{t('welcome.locationAware')}</strong>
+              <p>{t('welcome.locationAwareDesc')}</p>
             </div>
           </div>
           
           <div className="welcome-info-item">
             <span className="welcome-info-icon">⏰</span>
             <div>
-              <strong>Customizable rides</strong>
-              <p>Set your ride time and duration for accurate recommendations</p>
+              <strong>{t('welcome.customizable')}</strong>
+              <p>{t('welcome.customizableDesc')}</p>
             </div>
           </div>
           
           <div className="welcome-info-item">
             <span className="welcome-info-icon">👕</span>
             <div>
-              <strong>Customize & share</strong>
-              <p>Create custom wardrobes and share them with others</p>
+              <strong>{t('welcome.customizeShare')}</strong>
+              <p>{t('welcome.customizeShareDesc')}</p>
             </div>
           </div>
         </div>
 
         <div className="welcome-actions">
           <div className="welcome-section">
-            <h3>Get Started</h3>
+            <h3>{t('welcome.getStarted')}</h3>
             <p className="welcome-section-text">
-              Start getting personalized cycling clothing recommendations based on real-time weather conditions.
+              {t('welcome.getStartedDesc')}
             </p>
             <button 
               className="btn btn-primary welcome-btn"
               onClick={handleGetStarted}
             >
-              Let's Go
+              {t('welcome.letsGo')}
             </button>
           </div>
 
           <div className="welcome-divider">
-            <span>or</span>
+            <span>{t('welcome.or')}</span>
           </div>
 
           <div className="welcome-section">
-            <h3>Try Demo Mode</h3>
+            <h3>{t('welcome.tryDemo')}</h3>
             <p className="welcome-section-text">
-              Want to explore the app first? Try demo mode with randomized weather conditions to see how it works.
+              {t('welcome.tryDemoDesc')}
             </p>
             <button 
               className="btn btn-secondary welcome-btn"
               onClick={handleTryDemo}
             >
-              Try Demo Mode
+              {t('welcome.tryDemo')}
             </button>
             <p className="welcome-section-note">
-              You can always enable or disable demo mode later in the settings.
+              {t('welcome.demoNote')}
             </p>
           </div>
         </div>
