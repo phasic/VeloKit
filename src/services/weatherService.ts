@@ -3,6 +3,18 @@ import { storage } from '../utils/storage';
 
 const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
 
+function shouldUseDirectOpenWeather(): boolean {
+  return storage.getWeatherApiMode() === 'direct';
+}
+
+function getOpenWeatherApiKeyOrThrow(): string {
+  const key = storage.getApiKey();
+  if (!key || !key.trim()) {
+    throw new Error('OpenWeather API key not configured. Go to Settings → Weather API to enter your key.');
+  }
+  return key.trim();
+}
+
 // Get API base URL dynamically based on dev tools selection
 function getApiBaseUrl(): string {
   const apiServer = storage.getApiServer();
@@ -39,17 +51,25 @@ export async function fetchWeatherForecast(
     return cached.data;
   }
 
-  // Fetch from middleware API (API key is handled server-side)
+  // Fetch from middleware API (API key is handled server-side) or directly from OpenWeather (user-provided key)
   const units = config.units === 'imperial' ? 'imperial' : 'metric';
   const startTime = Math.floor(config.startTime.getTime() / 1000);
-  const apiBaseUrl = getApiBaseUrl();
-  const url = `${apiBaseUrl}/api/weather/forecast?lat=${location.lat}&lon=${location.lon}&units=${units}&startTime=${startTime}&durationHours=${config.durationHours}`;
+  const endTime = startTime + (config.durationHours * 3600);
+
+  let url: string;
+  if (shouldUseDirectOpenWeather()) {
+    const apiKey = getOpenWeatherApiKeyOrThrow();
+    url = `https://api.openweathermap.org/data/3.0/onecall?lat=${location.lat}&lon=${location.lon}&units=${units}&exclude=current,minutely,daily,alerts&appid=${apiKey}`;
+  } else {
+    const apiBaseUrl = getApiBaseUrl();
+    url = `${apiBaseUrl}/api/weather/forecast?lat=${location.lat}&lon=${location.lon}&units=${units}&startTime=${startTime}&durationHours=${config.durationHours}`;
+  }
 
   const response = await fetch(url);
   if (!response.ok) {
     if (response.status === 401) {
-      const errorData = await response.json().catch(() => ({}));
-      const errorMessage = errorData.message || 'Invalid API key or subscription required';
+      const errorData = await response.json().catch(() => ({} as any));
+      const errorMessage = (errorData as any).message || 'Invalid API key or subscription required';
       throw new Error(
         `API Error (401): ${errorMessage}. One Call API 3.0 requires a subscription. Please subscribe at https://openweathermap.org/api/one-call-3`
       );
@@ -60,8 +80,9 @@ export async function fetchWeatherForecast(
 
   const data: WeatherForecast = await response.json();
 
-  // Middleware already filters hourly data, so use it directly
-  const rideHours = data.hourly || [];
+  // Middleware filters hourly data; direct OpenWeather does not. Filter either way to be safe.
+  const hourly = data.hourly || [];
+  const rideHours = hourly.filter((h) => h.dt >= startTime && h.dt <= endTime);
 
   if (rideHours.length === 0) {
     throw new Error('No weather data available for ride window');
@@ -102,8 +123,14 @@ export async function fetchWeatherForecast(
 }
 
 export async function geocodeCity(cityName: string): Promise<Location> {
-  const apiBaseUrl = getApiBaseUrl();
-  const url = `${apiBaseUrl}/api/weather/geocode?city=${encodeURIComponent(cityName)}`;
+  let url: string;
+  if (shouldUseDirectOpenWeather()) {
+    const apiKey = getOpenWeatherApiKeyOrThrow();
+    url = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(cityName)}&limit=1&appid=${apiKey}`;
+  } else {
+    const apiBaseUrl = getApiBaseUrl();
+    url = `${apiBaseUrl}/api/weather/geocode?city=${encodeURIComponent(cityName)}`;
+  }
 
   const response = await fetch(url);
   if (!response.ok) {
@@ -112,15 +139,17 @@ export async function geocodeCity(cityName: string): Promise<Location> {
   }
 
   const data = await response.json();
-  if (!data) {
+  // Middleware returns a single object; OpenWeather returns an array.
+  const result = Array.isArray(data) ? data[0] : data;
+  if (!result) {
     throw new Error('City not found');
   }
 
   // Round coordinates to 1 decimal place (~11km precision) for consistent caching
   return {
-    lat: Math.round(data.lat * 10) / 10,
-    lon: Math.round(data.lon * 10) / 10,
-    city: data.name,
+    lat: Math.round(result.lat * 10) / 10,
+    lon: Math.round(result.lon * 10) / 10,
+    city: result.name,
   };
 }
 
@@ -138,8 +167,14 @@ export async function reverseGeocode(lat: number, lon: number): Promise<string |
 
   try {
     // Use precise coordinates for API call, but cache with 2 decimal places
-    const apiBaseUrl = getApiBaseUrl();
-    const url = `${apiBaseUrl}/api/weather/reverse-geocode?lat=${lat}&lon=${lon}`;
+    let url: string;
+    if (shouldUseDirectOpenWeather()) {
+      const apiKey = getOpenWeatherApiKeyOrThrow();
+      url = `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${apiKey}`;
+    } else {
+      const apiBaseUrl = getApiBaseUrl();
+      url = `${apiBaseUrl}/api/weather/reverse-geocode?lat=${lat}&lon=${lon}`;
+    }
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -147,7 +182,8 @@ export async function reverseGeocode(lat: number, lon: number): Promise<string |
     }
 
     const data = await response.json();
-    const cityName = data.name || null;
+    const result = Array.isArray(data) ? data[0] : data;
+    const cityName = (result && result.name) ? result.name : null;
     
     // Cache the result with rounded coordinates
     if (cityName) {

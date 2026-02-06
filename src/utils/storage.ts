@@ -2,6 +2,7 @@ import { WeatherSummary } from '../types';
 
 const STORAGE_KEYS = {
   API_KEY: 'velokit_api_key',
+  WEATHER_API_MODE: 'velokit_weather_api_mode', // 'middleware' | 'direct'
   WEATHER_CACHE: 'velokit_weather_cache',
   GEOCODE_CACHE: 'velokit_geocode_cache',
   UNITS: 'velokit_units',
@@ -28,6 +29,19 @@ export const storage = {
 
   setApiKey: (key: string): void => {
     localStorage.setItem(STORAGE_KEYS.API_KEY, key);
+  },
+
+  clearApiKey: (): void => {
+    localStorage.removeItem(STORAGE_KEYS.API_KEY);
+  },
+
+  getWeatherApiMode: (): 'middleware' | 'direct' => {
+    const value = localStorage.getItem(STORAGE_KEYS.WEATHER_API_MODE);
+    return value === 'direct' ? 'direct' : 'middleware';
+  },
+
+  setWeatherApiMode: (mode: 'middleware' | 'direct'): void => {
+    localStorage.setItem(STORAGE_KEYS.WEATHER_API_MODE, mode);
   },
 
   getUnits: (): 'metric' | 'imperial' => {

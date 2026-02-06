@@ -26,6 +26,9 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
   const [savedMessage, setSavedMessage] = useState<string>('');
   const [showClearCacheConfirm, setShowClearCacheConfirm] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState(() => i18n.language);
+  const [weatherApiMode, setWeatherApiMode] = useState<'middleware' | 'direct'>(() => storage.getWeatherApiMode());
+  const [openWeatherApiKey, setOpenWeatherApiKey] = useState<string>(() => storage.getApiKey() || '');
+  const [openWeatherApiKeyError, setOpenWeatherApiKeyError] = useState<string>('');
 
   useEffect(() => {
     storage.setUnits(units);
@@ -44,17 +47,38 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
     // Validate default duration
     const numValue = parseFloat(defaultDurationInput);
     if (defaultDurationInput === '' || isNaN(numValue)) {
-      setDefaultDurationError('Duration must be greater than 0');
+      setDefaultDurationError(t('settings.durationError'));
     } else if (numValue === 0) {
-      setDefaultDurationError('Duration must be greater than 0');
+      setDefaultDurationError(t('settings.durationError'));
     } else if (numValue > 24) {
-      setDefaultDurationError('Duration cannot exceed 24 hours');
+      setDefaultDurationError(t('settings.durationMaxError'));
     } else {
       setDefaultDurationError('');
       setDefaultDuration(numValue);
       storage.setDefaultDuration(numValue);
     }
-  }, [defaultDurationInput]);
+  }, [defaultDurationInput, t]);
+
+  useEffect(() => {
+    storage.setWeatherApiMode(weatherApiMode);
+  }, [weatherApiMode]);
+
+  useEffect(() => {
+    const trimmed = openWeatherApiKey.trim();
+    if (trimmed) {
+      storage.setApiKey(trimmed);
+    } else {
+      storage.clearApiKey();
+    }
+  }, [openWeatherApiKey]);
+
+  useEffect(() => {
+    if (weatherApiMode === 'direct' && !openWeatherApiKey.trim()) {
+      setOpenWeatherApiKeyError(t('settings.openWeatherApiKeyMissing'));
+    } else {
+      setOpenWeatherApiKeyError('');
+    }
+  }, [weatherApiMode, openWeatherApiKey, t]);
 
   useEffect(() => {
     storage.setDemoMode(demoMode);
@@ -81,8 +105,13 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
     const numValue = parseFloat(defaultDurationInput);
     if (defaultDurationInput === '' || isNaN(numValue) || numValue === 0 || numValue > 24) {
       setDefaultDurationError(numValue === 0 || defaultDurationInput === '' || isNaN(numValue)
-        ? 'Duration must be greater than 0' 
-        : 'Duration cannot exceed 24 hours');
+        ? t('settings.durationError')
+        : t('settings.durationMaxError'));
+      return;
+    }
+
+    if (weatherApiMode === 'direct' && !openWeatherApiKey.trim()) {
+      setOpenWeatherApiKeyError(t('settings.openWeatherApiKeyMissing'));
       return;
     }
     
@@ -90,6 +119,12 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
     storage.setTheme(theme);
     storage.setDateFormat(dateFormat);
     storage.setDefaultDuration(defaultDuration);
+    storage.setWeatherApiMode(weatherApiMode);
+    if (openWeatherApiKey.trim()) {
+      storage.setApiKey(openWeatherApiKey.trim());
+    } else {
+      storage.clearApiKey();
+    }
     applyTheme(theme);
     
     setSavedMessage(t('settings.saved'));
@@ -145,6 +180,63 @@ export function Settings({ onBack, onAbout, onShowInstallPrompt, onWeatherOverri
               </select>
               <small>{t('settings.languageDesc')}</small>
             </div>
+
+            <div className="form-group">
+              <label>{t('settings.weatherApi')}</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="weatherApiMode"
+                    value="middleware"
+                    checked={weatherApiMode === 'middleware'}
+                    onChange={() => setWeatherApiMode('middleware')}
+                  />
+                  <span>{t('settings.weatherApiModeServer')}</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="weatherApiMode"
+                    value="direct"
+                    checked={weatherApiMode === 'direct'}
+                    onChange={() => setWeatherApiMode('direct')}
+                  />
+                  <span>{t('settings.weatherApiModeDirect')}</span>
+                </label>
+              </div>
+              <small>{t('settings.weatherApiDesc')}</small>
+            </div>
+
+            {weatherApiMode === 'direct' && (
+              <div className="form-group">
+                <label htmlFor="openWeatherApiKey">{t('settings.openWeatherApiKey')}</label>
+                <input
+                  id="openWeatherApiKey"
+                  type="password"
+                  value={openWeatherApiKey}
+                  onChange={(e) => setOpenWeatherApiKey(e.target.value)}
+                  placeholder={t('settings.openWeatherApiKeyPlaceholder')}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                {openWeatherApiKeyError ? (
+                  <small style={{ color: 'var(--error-color)', display: 'block', marginTop: '4px' }}>
+                    {openWeatherApiKeyError}
+                  </small>
+                ) : (
+                  <small>{t('settings.openWeatherApiKeyDesc')}</small>
+                )}
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setOpenWeatherApiKey('')}
+                  style={{ marginTop: '0.5rem' }}
+                >
+                  {t('settings.openWeatherApiKeyClear')}
+                </button>
+              </div>
+            )}
             
             <div className="form-group">
               <label htmlFor="defaultDuration">{t('settings.defaultDuration')}</label>
