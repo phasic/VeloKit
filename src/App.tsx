@@ -33,8 +33,6 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [weatherOverride, setWeatherOverride] = useState<Partial<WeatherSummary> | null>(null);
   const [forceShowInstallPrompt, setForceShowInstallPrompt] = useState(false);
-  const [showFloatingActions, setShowFloatingActions] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [selectedWardrobeId, setSelectedWardrobeId] = useState<string | null>(() => storage.getSelectedWardrobeId());
   const [isEditMode, setIsEditMode] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
@@ -46,29 +44,6 @@ function App() {
   // Only treat as default if selectedWardrobeId is null, 'default', or empty string
   // Custom wardrobes will have a non-null, non-empty, non-'default' ID
   const isDefaultWardrobe = !selectedWardrobeId || selectedWardrobeId === 'default' || selectedWardrobeId === '';
-
-  // Handle scroll for floating actions visibility
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      
-      if (currentScrollY < 10) {
-        // Always show at top
-        setShowFloatingActions(true);
-      } else if (currentScrollY > lastScrollY) {
-        // Scrolling down - hide
-        setShowFloatingActions(false);
-      } else {
-        // Scrolling up - show
-        setShowFloatingActions(true);
-      }
-      
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
 
   // Initialize theme on app load
   useEffect(() => {
@@ -218,107 +193,77 @@ function App() {
     setError(null);
   };
 
+  const hasHeader = page !== 'welcome' && page !== 'settings' && page !== 'about';
+
   return (
-    <div className="app">
-      {page !== 'welcome' && page !== 'settings' && page !== 'about' && (
-      <div className={`floating-header-actions ${showFloatingActions ? 'visible' : 'hidden'}`}>
-        {page === 'guide' && !isDefaultWardrobe && (
-          <>
-            {/* Add button - always visible when not default wardrobe */}
-            <button
-              className="btn-icon floating-action"
-              onClick={() => {
-                // Open add clothing modal - will be handled by ClothingGuide component
-                const event = new CustomEvent('openAddClothing');
-                window.dispatchEvent(event);
-              }}
-              aria-label="Add Clothing"
-            >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M10 4.16667V15.8333M4.16667 10H15.8333" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-            
-            {!isEditMode ? (
+    <div className={`app${hasHeader ? ' app--has-header' : ''}`}>
+      {hasHeader && (
+        <header className="app-header">
+          <div className="app-header-inner">
+            <div className="app-header-title">
+              <img src={`${import.meta.env.BASE_URL}favicon.png`} alt="" className="app-header-icon" />
+              <span className="app-header-wordmark">VeloKit</span>
+            </div>
+            <div className="app-header-actions">
+              {page === 'guide' && !isDefaultWardrobe && (
+                <>
+                  <button
+                    className="app-header-btn"
+                    onClick={() => window.dispatchEvent(new CustomEvent('openAddClothing'))}
+                    aria-label="Add Clothing"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                      <path d="M10 4.167V15.833M4.167 10H15.833" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                  {!isEditMode ? (
+                    <button
+                      className="app-header-btn"
+                      onClick={() => window.dispatchEvent(new CustomEvent('toggleWardrobeEdit'))}
+                      aria-label="Edit Wardrobe"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                        <path d="M11.05 3L4.208 10.242c-.258.275-.508.817-.558 1.192L3.342 14.133c-.108.975.592 1.642 1.558 1.475l2.683-.458c.375-.067.9-.342 1.158-.625L15.583 7.283C16.767 6.033 17.3 4.608 15.458 2.867 13.625 1.142 12.233 1.75 11.05 3Z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M9.908 4.208c.358 2.3 2.225 4.058 4.542 4.292" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        className="app-header-btn app-header-btn--danger"
+                        onClick={() => setShowDiscardConfirm(true)}
+                        aria-label="Discard changes"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                          <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                      <button
+                        className="app-header-btn app-header-btn--success"
+                        onClick={() => setShowSaveConfirm(true)}
+                        aria-label="Save changes"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                          <path d="M16.667 5L7.5 14.167L3.333 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                    </>
+                  )}
+                </>
+              )}
               <button
-                className="btn-icon floating-action"
-                onClick={() => {
-                  // Toggle edit mode - will be handled by ClothingGuide component
-                  const event = new CustomEvent('toggleWardrobeEdit');
-                  window.dispatchEvent(event);
-                }}
-                aria-label="Edit Wardrobe"
+                className="app-header-btn"
+                onClick={() => { setPreviousPage(page); handleNavigate('settings'); }}
+                aria-label="Settings"
               >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M11.05 3.00002L4.20835 10.2417C3.95002 10.5167 3.70002 11.0584 3.65002 11.4334L3.34169 14.1334C3.23335 15.1084 3.93335 15.775 4.90002 15.6084L7.58335 15.15C7.95835 15.0834 8.48335 14.8084 8.74169 14.525L15.5834 7.28335C16.7667 6.03335 17.3 4.60835 15.4584 2.86668C13.625 1.14168 12.2334 1.75002 11.05 3.00002Z" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M9.90833 4.20831C10.2667 6.50831 12.1333 8.26665 14.45 8.49998" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M2.5 18.3333H17.5" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                 </svg>
               </button>
-            ) : (
-              <>
-                <button
-                  className="btn-icon floating-action"
-                  onClick={() => setShowDiscardConfirm(true)}
-                  aria-label="Discard changes"
-                  style={{
-                    backgroundColor: '#FF3B30',
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: 'none',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 16px rgba(255, 59, 48, 0.3)',
-                  }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M15 5L5 15M5 5L15 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-                <button
-                  className="btn-icon floating-action"
-                  onClick={() => setShowSaveConfirm(true)}
-                  aria-label="Save changes"
-                  style={{
-                    backgroundColor: '#34C759',
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: 'none',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 16px rgba(52, 199, 89, 0.3)',
-                  }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M16.667 5L7.5 14.167L3.333 10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-              </>
-            )}
-          </>
-        )}
-        <button
-          className="btn-icon floating-action"
-          onClick={() => {
-            // Save current page before navigating to settings
-            setPreviousPage(page);
-            handleNavigate('settings');
-          }}
-          aria-label="Settings"
-        >
-          <img
-            src={`${import.meta.env.BASE_URL}settings.png`}
-            alt="Settings"
-            className="settings-icon"
-          />
-        </button>
-      </div>
+            </div>
+          </div>
+        </header>
       )}
 
       <main>
