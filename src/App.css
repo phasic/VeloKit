@@ -290,7 +290,7 @@ header {
   padding-top: env(safe-area-inset-top, 0px);
 }
 
-.app-header-inner {
+.app-header-row1 {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -298,6 +298,49 @@ header {
   height: 52px;
   max-width: 600px;
   margin: 0 auto;
+}
+
+.app-header-nav {
+  display: flex;
+  max-width: 600px;
+  margin: 0 auto;
+  border-top: 1px solid var(--separator-color);
+}
+
+.app-nav-tab {
+  flex: 1;
+  padding: 9px 8px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.1px;
+  color: var(--secondary-color);
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app-nav-tab:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.app-nav-tab.active {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.app-nav-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: var(--primary-color);
+  border-radius: 2px 2px 0 0;
 }
 
 .app-header-title {
@@ -366,7 +409,7 @@ header {
 }
 
 .app--has-header main {
-  padding-top: calc(52px + env(safe-area-inset-top, 0px));
+  padding-top: calc(92px + env(safe-area-inset-top, 0px));
 }
 
 .settings-header {
@@ -503,11 +546,15 @@ header h1 {
 main {
   flex: 1;
   padding: 0;
-  padding-bottom: max(100px, calc(env(safe-area-inset-bottom) + 100px));
+  padding-bottom: max(28px, calc(env(safe-area-inset-bottom) + 28px));
   max-width: 600px;
   width: 100%;
   margin: 0 auto;
   background-color: transparent;
+}
+
+.ios-tab-bar {
+  display: none;
 }
 
 .page {

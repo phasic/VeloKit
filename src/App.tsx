@@ -8,7 +8,6 @@ import { ClothingGuide } from './pages/ClothingGuide';
 import { About } from './pages/About';
 import { Welcome } from './pages/Welcome';
 import { WardrobeManagement } from './pages/WardrobeManagement';
-import { BottomTabBar } from './components/BottomTabBar';
 import { InstallPrompt } from './components/InstallPrompt';
 import { fetchWeatherForecast } from './services/weatherService';
 import { recommendClothing } from './logic/clothingEngine';
@@ -199,7 +198,7 @@ function App() {
     <div className={`app${hasHeader ? ' app--has-header' : ''}`}>
       {hasHeader && (
         <header className="app-header">
-          <div className="app-header-inner">
+          <div className="app-header-row1">
             <div className="app-header-title">
               <img src={`${import.meta.env.BASE_URL}favicon.png`} alt="" className="app-header-icon" />
               <span className="app-header-wordmark">VeloKit</span>
@@ -263,6 +262,33 @@ function App() {
               </button>
             </div>
           </div>
+          <nav className="app-header-nav">
+            <button
+              className={`app-nav-tab ${page === 'home' ? 'active' : ''}`}
+              onClick={() => handleNavigate('home')}
+            >
+              Quick View
+            </button>
+            <button
+              className={`app-nav-tab ${(page === 'setup' || page === 'recommendation') ? 'active' : ''}`}
+              onClick={() => {
+                if (recommendation && weather && config && location) {
+                  handleNavigate('recommendation');
+                } else {
+                  handleNavigate('setup');
+                }
+              }}
+              disabled={loading && page === 'setup'}
+            >
+              Custom
+            </button>
+            <button
+              className={`app-nav-tab ${page === 'guide' ? 'active' : ''}`}
+              onClick={() => handleNavigate('guide')}
+            >
+              Wardrobe
+            </button>
+          </nav>
         </header>
       )}
 
@@ -355,22 +381,6 @@ function App() {
             )}
           </main>
 
-          {(page === 'home' || page === 'setup' || page === 'guide' || page === 'recommendation') && (
-            <BottomTabBar
-              currentPage={page}
-              onHome={() => handleNavigate('home')}
-              onCustom={() => {
-                // If there's a current recommendation, navigate to it instead of resetting
-                if (recommendation && weather && config && location) {
-                  handleNavigate('recommendation');
-                } else {
-                  handleNavigate('setup');
-                }
-              }}
-              onGuide={() => handleNavigate('guide')}
-              customLoading={loading && page === 'setup'}
-            />
-          )}
 
           {page !== 'welcome' && (
             <InstallPrompt 
