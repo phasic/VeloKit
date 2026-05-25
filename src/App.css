@@ -405,6 +405,17 @@ header {
   width: 22px;
   height: 22px;
   object-fit: contain;
+  filter: brightness(0) saturate(100%) invert(30%);
+}
+
+:root.dark .app-header-nav-icon {
+  filter: invert(1) brightness(1.2);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) .app-header-nav-icon {
+    filter: invert(1) brightness(1.2);
+  }
 }
 
 .app--has-header main {

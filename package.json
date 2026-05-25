@@ -1,6 +1,6 @@
 {
   "name": "velokit",
-  "version": "1.0.0-9ffd9c8",
+  "version": "1.0.0-3d424d4",
   "type": "module",
   "scripts": {
     "dev": "vite",
