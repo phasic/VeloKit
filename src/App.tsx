@@ -8,7 +8,6 @@ import { ClothingGuide } from './pages/ClothingGuide';
 import { About } from './pages/About';
 import { Welcome } from './pages/Welcome';
 import { WardrobeManagement } from './pages/WardrobeManagement';
-import { BottomTabBar } from './components/BottomTabBar';
 import { InstallPrompt } from './components/InstallPrompt';
 import { fetchWeatherForecast } from './services/weatherService';
 import { recommendClothing } from './logic/clothingEngine';
@@ -194,6 +193,7 @@ function App() {
   };
 
   const hasHeader = page !== 'welcome' && page !== 'settings' && page !== 'about';
+  const hasNav = page === 'home' || page === 'setup' || page === 'recommendation' || page === 'guide';
 
   return (
     <div className={`app${hasHeader ? ' app--has-header' : ''}`}>
@@ -204,6 +204,38 @@ function App() {
               <img src={`${import.meta.env.BASE_URL}favicon.png`} alt="" className="app-header-icon" />
               <span className="app-header-wordmark">VeloKit</span>
             </div>
+            {hasNav && (
+              <nav className="app-header-nav">
+                <button
+                  className={`app-header-nav-btn${page === 'home' ? ' active' : ''}`}
+                  onClick={() => handleNavigate('home')}
+                  aria-label="Quick View"
+                >
+                  <img src={`${import.meta.env.BASE_URL}flash.png`} alt="" className="app-header-nav-icon" />
+                </button>
+                <button
+                  className={`app-header-nav-btn${(page === 'setup' || page === 'recommendation') ? ' active' : ''}`}
+                  onClick={() => {
+                    if (recommendation && weather && config && location) {
+                      handleNavigate('recommendation');
+                    } else {
+                      handleNavigate('setup');
+                    }
+                  }}
+                  disabled={loading && page === 'setup'}
+                  aria-label="Custom"
+                >
+                  <img src={`${import.meta.env.BASE_URL}equalizer.png`} alt="" className="app-header-nav-icon" />
+                </button>
+                <button
+                  className={`app-header-nav-btn${page === 'guide' ? ' active' : ''}`}
+                  onClick={() => handleNavigate('guide')}
+                  aria-label="Wardrobe"
+                >
+                  <img src={`${import.meta.env.BASE_URL}wardrobe.png`} alt="" className="app-header-nav-icon" />
+                </button>
+              </nav>
+            )}
             <div className="app-header-actions">
               {page === 'guide' && !isDefaultWardrobe && (
                 <>
@@ -354,23 +386,6 @@ function App() {
               <ClothingGuide />
             )}
           </main>
-
-          {(page === 'home' || page === 'setup' || page === 'guide' || page === 'recommendation') && (
-            <BottomTabBar
-              currentPage={page}
-              onHome={() => handleNavigate('home')}
-              onCustom={() => {
-                // If there's a current recommendation, navigate to it instead of resetting
-                if (recommendation && weather && config && location) {
-                  handleNavigate('recommendation');
-                } else {
-                  handleNavigate('setup');
-                }
-              }}
-              onGuide={() => handleNavigate('guide')}
-              customLoading={loading && page === 'setup'}
-            />
-          )}
 
           {page !== 'welcome' && (
             <InstallPrompt 
