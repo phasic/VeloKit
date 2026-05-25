@@ -9,6 +9,15 @@ import { generateDemoWeather } from '../utils/demoWeather';
 import { WeatherChart } from '../components/WeatherChart';
 import { getActiveWardrobe } from '../utils/wardrobeUtils';
 
+const BODY_PART_META: Record<string, { emoji: string; label: string }> = {
+  head:     { emoji: '🪖', label: 'Head' },
+  neckFace: { emoji: '🧣', label: 'Neck & Face' },
+  torso:    { emoji: '👕', label: 'Torso' },
+  legs:     { emoji: '👖', label: 'Legs' },
+  hands:    { emoji: '🧤', label: 'Hands' },
+  feet:     { emoji: '👟', label: 'Feet' },
+};
+
 interface HomeProps {
   onLocationFound: (location: Location) => void;
   onManualInput: () => void;
@@ -33,6 +42,8 @@ export function Home({ onQuickRecommendation, onNavigateToWardrobe, onNavigateTo
     location: Location;
   } | null>(null);
   const [quickViewLoading, setQuickViewLoading] = useState(false);
+  const [showRideDetails, setShowRideDetails] = useState(true);
+  const [showWhy, setShowWhy] = useState(false);
   const [pullToRefresh, setPullToRefresh] = useState({
     isPulling: false,
     pullDistance: 0,
@@ -612,19 +623,33 @@ export function Home({ onQuickRecommendation, onNavigateToWardrobe, onNavigateTo
             </div>
           </div>
 
+          {/* Context strip: location + time */}
+          {(quickViewData.location.city || quickViewData.location.lat) && (
+            <div className="home-context-strip">
+              <span className="home-context-location">
+                <span className="home-context-location-pin">📍</span>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {quickViewData.location.city || `${quickViewData.location.lat.toFixed(2)}, ${quickViewData.location.lon.toFixed(2)}`}
+                </span>
+              </span>
+              <span className="home-context-time">
+                {quickViewData.config.durationHours}h ride
+              </span>
+            </div>
+          )}
+
           <div className="quick-clothing">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0 }}>{t('home.whatToWear')}</h3>
+            <div className="what-to-wear-header">
+              <h3 className="what-to-wear-title">{t('home.whatToWear')}</h3>
               <button
-                className="refresh-btn desktop-only"
+                className="refresh-btn desktop-only what-to-wear-action"
                 onClick={loadQuickView}
                 disabled={quickViewLoading}
                 aria-label="Refresh"
-                style={{ margin: 0 }}
               >
-                <img 
-                  src={`${import.meta.env.BASE_URL}refresh.png`} 
-                  alt="Refresh" 
+                <img
+                  src={`${import.meta.env.BASE_URL}refresh.png`}
+                  alt="Refresh"
                   className="refresh-btn-icon"
                 />
                 <span>{t('home.refresh')}</span>
@@ -638,7 +663,7 @@ export function Home({ onQuickRecommendation, onNavigateToWardrobe, onNavigateTo
                   {t('home.wardrobeEmptyDesc')}
                 </p>
                 {onNavigateToWardrobe && (
-                  <button 
+                  <button
                     className="btn btn-primary empty-wardrobe-button"
                     onClick={onNavigateToWardrobe}
                   >
@@ -654,7 +679,7 @@ export function Home({ onQuickRecommendation, onNavigateToWardrobe, onNavigateTo
                   {t('home.noSuitableClothingDesc')}
                 </p>
                 {onNavigateToWardrobe && (
-                  <button 
+                  <button
                     className="btn btn-primary empty-wardrobe-button"
                     onClick={onNavigateToWardrobe}
                   >
@@ -664,320 +689,127 @@ export function Home({ onQuickRecommendation, onNavigateToWardrobe, onNavigateTo
               </div>
             ) : (
               <>
-            {quickViewData.recommendation.head.length > 0 && (
-              <div className="quick-kit">
-                <h3>Head</h3>
-                {groupItemsByType(quickViewData.recommendation.head, quickViewData.weather, quickViewData.config).map((group, groupIdx) => (
-                  <div key={groupIdx} className="item-group">
-                    <div className="item-group-icon-wrapper">
-                      <img 
-                        src={`${import.meta.env.BASE_URL}${getTypeIcon(group.type)}`}
-                        alt=""
-                        className="item-group-icon"
-                      />
+                {(['head', 'neckFace', 'torso', 'legs', 'hands', 'feet'] as const).map((part) => {
+                  const items = quickViewData.recommendation[part];
+                  if (!items || items.length === 0) return null;
+                  const meta = BODY_PART_META[part];
+                  return (
+                    <div key={part} className="quick-kit">
+                      <div className="body-part-header">
+                        <span className="body-part-emoji">{meta.emoji}</span>
+                        <span className="body-part-label">{meta.label}</span>
+                      </div>
+                      {groupItemsByType(items, quickViewData.weather, quickViewData.config).map((group, groupIdx) => (
+                        <div key={groupIdx} className="item-group">
+                          <div className="item-group-icon-wrapper">
+                            <img
+                              src={`${import.meta.env.BASE_URL}${getTypeIcon(group.type)}`}
+                              alt=""
+                              className="item-group-icon"
+                            />
+                          </div>
+                          <ul className="item-group-list">
+                            {group.items.map((item, idx) => {
+                              if (typeof item === 'object' && item !== null && 'options' in item) {
+                                const options = (item as { options: string[][] }).options;
+                                return (
+                                  <Fragment key={idx}>
+                                    {options.map((optionItems, optionIdx) => (
+                                      <Fragment key={optionIdx}>
+                                        {optionIdx > 0 && (
+                                          <li className="option-divider">
+                                            <span className="option-or">OR</span>
+                                          </li>
+                                        )}
+                                        {optionItems.map((optionItem, itemIdx) => (
+                                          <li key={`${optionIdx}-${itemIdx}`} className={optionIdx > 0 ? 'option-item' : ''}>
+                                            {optionItem}
+                                          </li>
+                                        ))}
+                                      </Fragment>
+                                    ))}
+                                  </Fragment>
+                                );
+                              }
+                              return <li key={idx}>{item}</li>;
+                            })}
+                          </ul>
+                        </div>
+                      ))}
                     </div>
-                    <ul className="item-group-list">
-                      {group.items.map((item, idx) => {
-                        // Check if this is an options group
-                        if (typeof item === 'object' && item !== null && 'options' in item) {
-                          const options = (item as { options: string[][] }).options;
-                          return (
-                            <Fragment key={idx}>
-                              {options.map((optionItems, optionIdx) => (
-                                <Fragment key={optionIdx}>
-                                  {optionIdx > 0 && (
-                                    <li key={`or-${optionIdx}`} className="option-divider">
-                                      <span className="option-or">OR</span>
-                                    </li>
-                                  )}
-                                  {optionItems.map((optionItem, itemIdx) => (
-                                    <li key={`${optionIdx}-${itemIdx}`} className={optionIdx > 0 ? "option-item" : ""}>
-                                      {optionItem}
-                                    </li>
-                                  ))}
-                                </Fragment>
-                              ))}
-                            </Fragment>
-                          );
-                        }
-                        return <li key={idx}>{item}</li>;
-                      })}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {quickViewData.recommendation.neckFace.length > 0 && (
-              <div className="quick-kit">
-                <h3>Neck / Face</h3>
-                {groupItemsByType(quickViewData.recommendation.neckFace, quickViewData.weather, quickViewData.config).map((group, groupIdx) => (
-                  <div key={groupIdx} className="item-group">
-                    <div className="item-group-icon-wrapper">
-                      <img 
-                        src={`${import.meta.env.BASE_URL}${getTypeIcon(group.type)}`}
-                        alt=""
-                        className="item-group-icon"
-                      />
-                    </div>
-                    <ul className="item-group-list">
-                      {group.items.map((item, idx) => {
-                        // Check if this is an options group
-                        if (typeof item === 'object' && item !== null && 'options' in item) {
-                          const options = (item as { options: string[][] }).options;
-                          return (
-                            <Fragment key={idx}>
-                              {options.map((optionItems, optionIdx) => (
-                                <Fragment key={optionIdx}>
-                                  {optionIdx > 0 && (
-                                    <li key={`or-${optionIdx}`} className="option-divider">
-                                      <span className="option-or">OR</span>
-                                    </li>
-                                  )}
-                                  {optionItems.map((optionItem, itemIdx) => (
-                                    <li key={`${optionIdx}-${itemIdx}`} className={optionIdx > 0 ? "option-item" : ""}>
-                                      {optionItem}
-                                    </li>
-                                  ))}
-                                </Fragment>
-                              ))}
-                            </Fragment>
-                          );
-                        }
-                        return <li key={idx}>{item}</li>;
-                      })}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {quickViewData.recommendation.torso.length > 0 && (
-              <div className="quick-kit">
-                <h3>Torso</h3>
-                {groupItemsByType(quickViewData.recommendation.torso, quickViewData.weather, quickViewData.config).map((group, groupIdx) => (
-                  <div key={groupIdx} className="item-group">
-                    <div className="item-group-icon-wrapper">
-                      <img 
-                        src={`${import.meta.env.BASE_URL}${getTypeIcon(group.type)}`}
-                        alt=""
-                        className="item-group-icon"
-                      />
-                    </div>
-                    <ul className="item-group-list">
-                      {group.items.map((item, idx) => {
-                        // Check if this is an options group
-                        if (typeof item === 'object' && item !== null && 'options' in item) {
-                          const options = (item as { options: string[][] }).options;
-                          return (
-                            <Fragment key={idx}>
-                              {options.map((optionItems, optionIdx) => (
-                                <Fragment key={optionIdx}>
-                                  {optionIdx > 0 && (
-                                    <li key={`or-${optionIdx}`} className="option-divider">
-                                      <span className="option-or">OR</span>
-                                    </li>
-                                  )}
-                                  {optionItems.map((optionItem, itemIdx) => (
-                                    <li key={`${optionIdx}-${itemIdx}`} className={optionIdx > 0 ? "option-item" : ""}>
-                                      {optionItem}
-                                    </li>
-                                  ))}
-                                </Fragment>
-                              ))}
-                            </Fragment>
-                          );
-                        }
-                        return <li key={idx}>{item}</li>;
-                      })}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {quickViewData.recommendation.legs.length > 0 && (
-              <div className="quick-kit">
-                <h3>Legs</h3>
-                {groupItemsByType(quickViewData.recommendation.legs, quickViewData.weather, quickViewData.config).map((group, groupIdx) => (
-                  <div key={groupIdx} className="item-group">
-                    <div className="item-group-icon-wrapper">
-                      <img 
-                        src={`${import.meta.env.BASE_URL}${getTypeIcon(group.type)}`}
-                        alt=""
-                        className="item-group-icon"
-                      />
-                    </div>
-                    <ul className="item-group-list">
-                      {group.items.map((item, idx) => {
-                        // Check if this is an options group
-                        if (typeof item === 'object' && item !== null && 'options' in item) {
-                          const options = (item as { options: string[][] }).options;
-                          return (
-                            <Fragment key={idx}>
-                              {options.map((optionItems, optionIdx) => (
-                                <Fragment key={optionIdx}>
-                                  {optionIdx > 0 && (
-                                    <li key={`or-${optionIdx}`} className="option-divider">
-                                      <span className="option-or">OR</span>
-                                    </li>
-                                  )}
-                                  {optionItems.map((optionItem, itemIdx) => (
-                                    <li key={`${optionIdx}-${itemIdx}`} className={optionIdx > 0 ? "option-item" : ""}>
-                                      {optionItem}
-                                    </li>
-                                  ))}
-                                </Fragment>
-                              ))}
-                            </Fragment>
-                          );
-                        }
-                        return <li key={idx}>{item}</li>;
-                      })}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {quickViewData.recommendation.hands.length > 0 && (
-              <div className="quick-kit">
-                <h3>Hands</h3>
-                {groupItemsByType(quickViewData.recommendation.hands, quickViewData.weather, quickViewData.config).map((group, groupIdx) => (
-                  <div key={groupIdx} className="item-group">
-                    <div className="item-group-icon-wrapper">
-                      <img 
-                        src={`${import.meta.env.BASE_URL}${getTypeIcon(group.type)}`}
-                        alt=""
-                        className="item-group-icon"
-                      />
-                    </div>
-                    <ul className="item-group-list">
-                      {group.items.map((item, idx) => {
-                        // Check if this is an options group
-                        if (typeof item === 'object' && item !== null && 'options' in item) {
-                          const options = (item as { options: string[][] }).options;
-                          return (
-                            <Fragment key={idx}>
-                              {options.map((optionItems, optionIdx) => (
-                                <Fragment key={optionIdx}>
-                                  {optionIdx > 0 && (
-                                    <li key={`or-${optionIdx}`} className="option-divider">
-                                      <span className="option-or">OR</span>
-                                    </li>
-                                  )}
-                                  {optionItems.map((optionItem, itemIdx) => (
-                                    <li key={`${optionIdx}-${itemIdx}`} className={optionIdx > 0 ? "option-item" : ""}>
-                                      {optionItem}
-                                    </li>
-                                  ))}
-                                </Fragment>
-                              ))}
-                            </Fragment>
-                          );
-                        }
-                        return <li key={idx}>{item}</li>;
-                      })}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {quickViewData.recommendation.feet.length > 0 && (
-              <div className="quick-kit">
-                <h3>Feet</h3>
-                {groupItemsByType(quickViewData.recommendation.feet, quickViewData.weather, quickViewData.config).map((group, groupIdx) => (
-                  <div key={groupIdx} className="item-group">
-                    <div className="item-group-icon-wrapper">
-                      <img 
-                        src={`${import.meta.env.BASE_URL}${getTypeIcon(group.type)}`}
-                        alt=""
-                        className="item-group-icon"
-                      />
-                    </div>
-                    <ul className="item-group-list">
-                      {group.items.map((item, idx) => {
-                        // Check if this is an options group
-                        if (typeof item === 'object' && item !== null && 'options' in item) {
-                          const options = (item as { options: string[][] }).options;
-                          return (
-                            <Fragment key={idx}>
-                              {options.map((optionItems, optionIdx) => (
-                                <Fragment key={optionIdx}>
-                                  {optionIdx > 0 && (
-                                    <li key={`or-${optionIdx}`} className="option-divider">
-                                      <span className="option-or">OR</span>
-                                    </li>
-                                  )}
-                                  {optionItems.map((optionItem, itemIdx) => (
-                                    <li key={`${optionIdx}-${itemIdx}`} className={optionIdx > 0 ? "option-item" : ""}>
-                                      {optionItem}
-                                    </li>
-                                  ))}
-                                </Fragment>
-                              ))}
-                            </Fragment>
-                          );
-                        }
-                        return <li key={idx}>{item}</li>;
-                      })}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            )}
+                  );
+                })}
               </>
             )}
           </div>
 
-          <div className="weather-summary" id="ride-details" style={{ scrollMarginTop: '20px' }}>
-            <h3>Ride details</h3>
-            <div className="weather-grid">
-              <div className="weather-item">
-                <span className="label">Date/Time:</span>
-                <span className="value">
-                  {formatDateTime(new Date(quickViewData.config.startTime), storage.getDateFormat())}
-                </span>
-              </div>
-              <div className="weather-item">
-                <span className="label">{t('home.duration')}:</span>
-                <span className="value">
-                  {quickViewData.config.durationHours} {quickViewData.config.durationHours === 1 ? t('home.hour') : t('home.hours')}
-                </span>
-              </div>
-              <div className="weather-item location-item">
-                <span className="label">{t('home.location')}:</span>
-                <span className="value">
-                  {quickViewData.location.city ? (
-                    <div>
-                      <div>{quickViewData.location.city}</div>
-                      <div className="location-coords">
-                        {quickViewData.location.lat.toFixed(2)}, {quickViewData.location.lon.toFixed(2)}
+          {/* Ride details — collapsible */}
+          <button
+            className="section-toggle"
+            onClick={() => setShowRideDetails(v => !v)}
+            aria-expanded={showRideDetails}
+          >
+            <span className="section-toggle-title">📋 Ride Details</span>
+            <span className={`section-toggle-chevron ${showRideDetails ? 'open' : ''}`}>⌄</span>
+          </button>
+          {showRideDetails && (
+            <div className="weather-summary" id="ride-details" style={{ scrollMarginTop: '20px', marginBottom: '8px' }}>
+              <div className="weather-grid">
+                <div className="weather-item">
+                  <span className="label">Date/Time</span>
+                  <span className="value">
+                    {formatDateTime(new Date(quickViewData.config.startTime), storage.getDateFormat())}
+                  </span>
+                </div>
+                <div className="weather-item">
+                  <span className="label">{t('home.duration')}</span>
+                  <span className="value">
+                    {quickViewData.config.durationHours} {quickViewData.config.durationHours === 1 ? t('home.hour') : t('home.hours')}
+                  </span>
+                </div>
+                <div className="weather-item location-item">
+                  <span className="label">{t('home.location')}</span>
+                  <span className="value">
+                    {quickViewData.location.city ? (
+                      <div>
+                        <div>{quickViewData.location.city}</div>
+                        <div className="location-coords">
+                          {quickViewData.location.lat.toFixed(2)}, {quickViewData.location.lon.toFixed(2)}
+                        </div>
                       </div>
-                    </div>
-                  ) : (
-                    `${quickViewData.location.lat.toFixed(2)}, ${quickViewData.location.lon.toFixed(2)}`
-                  )}
-                </span>
+                    ) : (
+                      `${quickViewData.location.lat.toFixed(2)}, ${quickViewData.location.lon.toFixed(2)}`
+                    )}
+                  </span>
+                </div>
               </div>
+              {quickViewData.weather.hourly && quickViewData.weather.hourly.length > 0 && (
+                <div id="weather-chart" style={{ marginTop: '12px', scrollMarginTop: '20px' }}>
+                  <h4 style={{ marginBottom: '8px', fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.6, color: 'var(--secondary-color)' }}>Weather Evolution</h4>
+                  <WeatherChart weather={quickViewData.weather} config={quickViewData.config} />
+                </div>
+              )}
             </div>
-            {quickViewData.weather.hourly && quickViewData.weather.hourly.length > 0 && (
-              <div id="weather-chart" style={{ marginTop: '8px', scrollMarginTop: '20px' }}>
-                <h4 style={{ marginBottom: '8px', fontSize: '16px', fontWeight: 600 }}>Weather Evolution</h4>
-                <WeatherChart weather={quickViewData.weather} config={quickViewData.config} />
-              </div>
-            )}
-          </div>
+          )}
 
-          <div className="explanation-section">
-            <h3>Why?</h3>
-            <ul>
-              {quickViewData.recommendation.explanation.map((reason, idx) => (
-                <li key={idx}>{reason}</li>
-              ))}
-            </ul>
-          </div>
+          {/* Why — collapsible */}
+          <button
+            className="section-toggle"
+            onClick={() => setShowWhy(v => !v)}
+            aria-expanded={showWhy}
+          >
+            <span className="section-toggle-title">💡 Why these choices?</span>
+            <span className={`section-toggle-chevron ${showWhy ? 'open' : ''}`}>⌄</span>
+          </button>
+          {showWhy && (
+            <div className="explanation-section" style={{ marginBottom: '16px' }}>
+              <ul>
+                {quickViewData.recommendation.explanation.map((reason, idx) => (
+                  <li key={idx}>{reason}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
         </div>
       )}
