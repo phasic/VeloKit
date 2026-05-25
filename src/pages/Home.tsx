@@ -13,7 +13,7 @@ const BODY_PART_META: Record<string, { emoji: string; label: string }> = {
   head:     { emoji: '🪖', label: 'Head' },
   neckFace: { emoji: '🧣', label: 'Neck & Face' },
   torso:    { emoji: '👕', label: 'Torso' },
-  legs:     { emoji: '🩱', label: 'Legs' },
+  legs:     { emoji: '👖', label: 'Legs' },
   hands:    { emoji: '🧤', label: 'Hands' },
   feet:     { emoji: '👟', label: 'Feet' },
 };
