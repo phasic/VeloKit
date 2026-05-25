@@ -200,7 +200,7 @@ function App() {
         <header className="app-header">
           <div className="app-header-row1">
             <div className="app-header-title">
-              <img src={`${import.meta.env.BASE_URL}favicon.png`} alt="" className="app-header-icon" />
+              <img src={`${import.meta.env.BASE_URL}pwa-192x192.png`} alt="" className="app-header-icon" />
               <span className="app-header-wordmark">VeloKit</span>
             </div>
             <div className="app-header-actions">
